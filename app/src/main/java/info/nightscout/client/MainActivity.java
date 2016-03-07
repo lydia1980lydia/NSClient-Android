@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView mTextView;
     static private ScrollView scrollview;
     private Switch switchAutoscroll;
+    TextViewLogger newAppender;
     private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
 
     @Override
@@ -75,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
         lc.getLoggerList();
         Logger logger = (Logger) LoggerFactory.getLogger("ROOT");
-        TextViewLogger newAppender = new TextViewLogger(mTextView, new Handler(Looper.getMainLooper()));
+        newAppender = new TextViewLogger(mTextView, new Handler(Looper.getMainLooper()));
         newAppender.setContext(lc);
         newAppender.start();
         logger.addAppender(newAppender);
@@ -130,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (id == R.id.action_clearlog) {
-            mTextView.setText("");
+            newAppender.clearLog();
             log.debug("Log cleared");
             return true;
         }
@@ -228,6 +229,10 @@ public class MainActivity extends AppCompatActivity {
             this.handler = handler;
         }
 
+        public void clearLog() {
+            listLog = new ArrayList<String>();
+            updateLog();
+        }
 
         @Override
         protected void append(final ILoggingEvent eventObject) {
