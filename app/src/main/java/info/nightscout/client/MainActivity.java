@@ -213,7 +213,6 @@ public class MainActivity extends AppCompatActivity {
             if (listLog.size() >= MAX_ERROR_LINES) {
                 listLog.remove(0);
             }
-            updateLog();
         }
 
         private void updateLog() {
@@ -237,21 +236,13 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void append(final ILoggingEvent eventObject) {
             if(mTextView!=null) {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        addToLog(timeFormat.format(new Date()) + " " + eventObject.getMessage());
-                        SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
-                        if (SP.getBoolean("nsAutoScroll", true)) {
-                            scrollview.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    scrollview.fullScroll(ScrollView.FOCUS_DOWN);
-                                }
-                            });
-                        }
-                    }
-                });
+                addToLog(timeFormat.format(new Date()) + " " + eventObject.getMessage());
+
+                updateLog();
+                SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
+                if (SP.getBoolean("nsAutoScroll", true)) {
+                   scrollview.fullScroll(ScrollView.FOCUS_DOWN);
+                }
             }
         }
     }
