@@ -5,9 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Date;
 
 import info.nightscout.client.MainApp;
 import info.nightscout.client.NSClient;
@@ -36,6 +39,13 @@ public class DBAccessReceiver extends BroadcastReceiver {
         try { collection = bundles.getString("collection"); } catch (Exception e) {}
         try { _id = bundles.getString("_id"); } catch (Exception e) {}
         try { data = new JSONObject(bundles.getString("data")); } catch (Exception e) {}
+
+        // mark by id
+        try {
+            data.put("NSCLIENT_ID", (new Date()).getTime());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
         if (action.equals("dbAdd")) {
             if (!isAllowedCollection(collection)) {

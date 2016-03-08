@@ -38,7 +38,6 @@ public class XDripEmulator {
     static DecimalFormat formatNumber1place = new DecimalFormat("0.0");
 
     private static final ScheduledExecutorService worker = Executors.newSingleThreadScheduledExecutor();
-    private static Intent preparedIntent = null;
     private static Long preparedTimestamp = 0l;
     private static ScheduledFuture<?> outgoingIntent = null;
 
@@ -52,6 +51,7 @@ public class XDripEmulator {
             }
         }
         Collections.sort(latest6bgReadings, new BgReadingsComparator());
+
         // cut off to 6 records
         if (latest6bgReadings.size() > 7) latest6bgReadings.remove(0);
     }
@@ -65,6 +65,9 @@ public class XDripEmulator {
                 "sendQueue");
         wakeLock.acquire();
         try {
+            // reset array if data are comming from new connection
+            if (isFull) latest6bgReadings = new ArrayList<BgReading>();
+
             Intent updateIntent = new Intent(Intents.ACTION_NEW_BG_ESTIMATE_NO_DATA);
             context.sendBroadcast(updateIntent);
 
@@ -83,9 +86,6 @@ public class XDripEmulator {
             List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
 
             log.debug("XDRIPEMU BG " + bgReading.valInUnit() + " (" + new SimpleDateFormat("H:mm").format(new Date(bgReading.timestamp)) + ") " + x.size() + " receivers");
-
-            // reset array if data are comming from new connection
-            if (isFull) latest6bgReadings = new ArrayList<BgReading>();
 
             // add new reading CHANGE: now picked up as broadcast
             // addBgReading(bgReading);

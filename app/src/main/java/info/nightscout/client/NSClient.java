@@ -259,6 +259,8 @@ public class NSClient {
                     for (Integer index = 0; index < treatments.length(); index++) {
                         JSONObject jsonTreatment = treatments.getJSONObject(index);
                         NSTreatment treatment =  new NSTreatment(jsonTreatment);
+                        // remove from upload queue if Ack is failing
+                        UploadQueue.removeID(jsonTreatment);
                         if (treatment.getAction() == null) {
                             // ********** TEST CODE ***********
                             if (jsonTreatment.has("NSCLIENTTESTRECORD")) {
@@ -278,11 +280,19 @@ public class NSClient {
                 if (data.has("devicestatus")) {
                     JSONArray devicestatuses = (JSONArray) data.getJSONArray("devicestatus");
                     if (devicestatuses.length() > 0) log.debug("NSCLIENT received " + devicestatuses.length() + " devicestatuses");
+                    for (Integer index = 0; index < devicestatuses.length(); index++) {
+                        JSONObject jsonStatus = devicestatuses.getJSONObject(index);
+                        // remove from upload queue if Ack is failing
+                        UploadQueue.removeID(jsonStatus);
+                    }
                 }
                 if (data.has("mbgs")) {
                     JSONArray mbgs = (JSONArray) data.getJSONArray("mbgs");
                     if (mbgs.length() > 0) log.debug("NSCLIENT received " + mbgs.length() + " mbgs");
                     for (Integer index = 0; index < mbgs.length(); index++) {
+                        JSONObject jsonMbg = mbgs.getJSONObject(index);
+                        // remove from upload queue if Ack is failing
+                        UploadQueue.removeID(jsonMbg);
                     }
                 }
                 if (data.has("cals")) {
@@ -293,6 +303,8 @@ public class NSClient {
                         if (index ==0) {
                             actualCal.set(cals.optJSONObject(index));
                         }
+                        // remove from upload queue if Ack is failing
+                        UploadQueue.removeID(cals.optJSONObject(index));
                     }
                 }
                 if (data.has("sgvs")) {
@@ -302,14 +314,17 @@ public class NSClient {
                     JSONArray sgvs = (JSONArray) data.getJSONArray("sgvs");
                     if (sgvs.length() > 0) log.debug("NSCLIENT received " + sgvs.length() + " sgvs");
                     for (Integer index = 0; index < sgvs.length(); index++) {
+                        JSONObject jsonSgv = sgvs.getJSONObject(index);
                         // log.debug("NSCLIENT svg " + sgvs.getJSONObject(index).toString());
-                        NSSgv sgv = new NSSgv(sgvs.getJSONObject(index));
+                        NSSgv sgv = new NSSgv(jsonSgv);
                         // Handle new sgv here
                         if (emulatexDrip) {
                             BgReading bgReading = new BgReading(sgv, actualCal, units);
                             emulator.handleNewBgReading(bgReading, isFull && index == 0, MainApp.instance().getApplicationContext());
                         }
                         bs.handleNewSgv(sgv, MainApp.instance().getApplicationContext(), isDelta);
+                        // remove from upload queue if Ack is failing
+                        UploadQueue.removeID(jsonSgv);
                     }
                 }
             } catch (JSONException e) {

@@ -1,5 +1,7 @@
 package info.nightscout.client.data;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +44,34 @@ public class UploadQueue {
         log.debug("QUEUE Reset");
         queue.clear();
         log.debug(status());
+    }
+
+    public static boolean removeID(JSONObject record) {
+        try {
+            long id = -1l;
+            if (record.has("NSCLIENT_ID")) {
+                id = record.getLong("NSCLIENT_ID");
+            } else {
+                return false;
+            }
+            Iterator<Map.Entry<String,DbRequest>> iter = queue.entrySet().iterator();
+            while (iter.hasNext()) {
+                DbRequest dbr = iter.next().getValue();
+                JSONObject data = dbr.data;
+                long nsclientId = -1;
+                    if (data.has("NSCLIENT_ID")) {
+                        nsclientId = data.getLong("NSCLIENT_ID");
+                        if (nsclientId == id) {
+                            log.debug("Removing item from UploadQueue");
+                            iter.remove();
+                            log.debug(UploadQueue.status());
+                            return true;
+                        }
+                    }
+            }
+        } catch (JSONException e) {
+        }
+        return false;
     }
 
     public static void resend() {
