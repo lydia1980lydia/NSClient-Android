@@ -51,8 +51,7 @@
         <receiver
             android:name=".receivers.DBAccessReceiver"
             android:enabled="true"
-            android:exported="true"
-            android:process=":mainProcess">
+            android:exported="true">
             <intent-filter>
                 <action android:name="info.nightscout.client.DBACCESS" />
             </intent-filter>
