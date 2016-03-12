@@ -197,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
 
     public class TextViewLogger extends AppenderBase<ILoggingEvent> {
         private final Handler handler;
-        private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+        private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
         private TextView mTextView;
 
         private List<String> listLog = new ArrayList<String>();
