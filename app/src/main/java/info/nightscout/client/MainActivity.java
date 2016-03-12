@@ -195,13 +195,13 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public static class TextViewLogger extends AppenderBase<ILoggingEvent> {
+    public class TextViewLogger extends AppenderBase<ILoggingEvent> {
         private final Handler handler;
         private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
         private TextView mTextView;
 
         private List<String> listLog = new ArrayList<String>();
-        private static int MAX_ERROR_LINES = 400;
+        private int MAX_ERROR_LINES = 400;
 
         private void addToLog(String str) {
             SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
@@ -220,7 +220,20 @@ public class MainActivity extends AppCompatActivity {
             for (String str : listLog) {
                 log += str + "\n";
             }
-            mTextView.setText(log);
+            setToGui(mTextView, log);
+        }
+
+        private void setToGui(final TextView textView, final String log) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    textView.setText(log);
+                    SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
+                    if (SP.getBoolean("nsAutoScroll", true)) {
+                        scrollview.fullScroll(ScrollView.FOCUS_DOWN);
+                    }
+                }
+            });
         }
 
         public TextViewLogger(TextView mTextView, Handler handler) {
@@ -235,14 +248,9 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void append(final ILoggingEvent eventObject) {
-            if(mTextView!=null) {
+            if (mTextView != null) {
                 addToLog(timeFormat.format(new Date()) + " " + eventObject.getMessage());
-
                 updateLog();
-                SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
-                if (SP.getBoolean("nsAutoScroll", true)) {
-                   scrollview.fullScroll(ScrollView.FOCUS_DOWN);
-                }
             }
         }
     }
