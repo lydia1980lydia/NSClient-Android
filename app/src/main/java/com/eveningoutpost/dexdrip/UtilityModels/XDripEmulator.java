@@ -58,7 +58,6 @@ public class XDripEmulator {
 
     public void handleNewBgReading(BgReading bgReading, boolean isFull, Context context) {
         SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
-        boolean sendToDanaApp = SP.getBoolean("ns_sendtodanaapp", false);
 
         PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
