@@ -36,7 +36,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
                 //log.debug("NETCHANGE:   networkInfo: " + info);
                 if (info.isConnected()) {
                     log.debug("NETCHANGE:   connected " + info.getTypeName());
-                    MainApp.bus().post(new RestartEvent());
+                    //MainApp.bus().post(new RestartEvent());
                 } else {
                     log.debug("NETCHANGE:   disconnected " + info.getTypeName());
                 }

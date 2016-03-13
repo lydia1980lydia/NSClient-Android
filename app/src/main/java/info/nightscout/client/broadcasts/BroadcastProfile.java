@@ -26,26 +26,17 @@ public class BroadcastProfile {
     private static Logger log = LoggerFactory.getLogger(BroadcastProfile.class);
 
     public void handleNewTreatment(NSProfile profile, Context context, boolean isDelta) {
-        PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                "sendQueue");
-        wakeLock.acquire();
-        try {
-            Bundle bundle = new Bundle();
-            bundle.putString("profile", profile.getData().toString());
-            bundle.putString("activeprofile", profile.getActiveProfile());
-            bundle.putBoolean("delta", isDelta);
-            Intent intent = new Intent(Intents.ACTION_NEW_PROFILE);
-            intent.putExtras(bundle);
-            intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-            context.sendBroadcast(intent);
-            List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
+        Bundle bundle = new Bundle();
+        bundle.putString("profile", profile.getData().toString());
+        bundle.putString("activeprofile", profile.getActiveProfile());
+        bundle.putBoolean("delta", isDelta);
+        Intent intent = new Intent(Intents.ACTION_NEW_PROFILE);
+        intent.putExtras(bundle);
+        intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+        context.sendBroadcast(intent);
+        List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
 
-            log.debug("PROFILE " + x.size() + " receivers");
-
-            } finally {
-            wakeLock.release();
-        }
+        log.debug("PROFILE " + x.size() + " receivers");
     }
 
 }

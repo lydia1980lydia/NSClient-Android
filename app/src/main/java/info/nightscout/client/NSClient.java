@@ -3,7 +3,9 @@ package info.nightscout.client;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.net.wifi.WifiManager;
+import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
 
@@ -200,30 +202,38 @@ public class NSClient {
     private Emitter.Listener onDataUpdate = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
-            SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
-            boolean emulatexDrip = SP.getBoolean("ns_emulate_xdrip", false);
-            connectionStatus = "Data packet " + dataCounter++;
-            mBus.post(new NSStatusEvent(connectionStatus));
+            Thread update = new Thread() {
+                @Override
+                public void run() {
+                    PowerManager powerManager = (PowerManager) MainApp.instance().getApplicationContext().getSystemService(Context.POWER_SERVICE);
+                    PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                            "onDataUpdate");
+                    wakeLock.acquire();
+                    try {
+                        SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
+                        boolean emulatexDrip = SP.getBoolean("ns_emulate_xdrip", false);
+                        connectionStatus = "Data packet " + dataCounter++;
+                        mBus.post(new NSStatusEvent(connectionStatus));
 
-            JSONObject data = (JSONObject) args[0];
-            String activeProfile = MainApp.getNsActiveProfile();
-            NSCal actualCal = new NSCal();
-            try {
-                // delta means only increment/changes are comming
-                boolean isDelta =  data.has("delta");
-                boolean isFull = !isDelta;
-                log.debug("NSCLIENT Data packet #" + dataCounter + (isDelta ? " delta" : " full"));
+                        JSONObject data = (JSONObject) args[0];
+                        String activeProfile = MainApp.getNsActiveProfile();
+                        NSCal actualCal = new NSCal();
+                        try {
+                            // delta means only increment/changes are comming
+                            boolean isDelta = data.has("delta");
+                            boolean isFull = !isDelta;
+                            log.debug("NSCLIENT Data packet #" + dataCounter + (isDelta ? " delta" : " full"));
 
-                if (data.has("status")) {
-                    JSONObject status = data.getJSONObject("status");
-                    NSStatus nsStatus = new NSStatus(status);
-                    activeProfile = nsStatus.getActiveProfile();
-                    MainApp.setNsActiveProfile(activeProfile);
-                    if (activeProfile != null) {
-                        log.debug("NSCLIENT status activeProfile received: " + activeProfile);
-                    }
-                    BroadcastStatus bs = new BroadcastStatus();
-                    bs.handleNewStatus(nsStatus, MainApp.instance().getApplicationContext(), isDelta);
+                            if (data.has("status")) {
+                                JSONObject status = data.getJSONObject("status");
+                                NSStatus nsStatus = new NSStatus(status);
+                                activeProfile = nsStatus.getActiveProfile();
+                                MainApp.setNsActiveProfile(activeProfile);
+                                if (activeProfile != null) {
+                                    log.debug("NSCLIENT status activeProfile received: " + activeProfile);
+                                }
+                                BroadcastStatus bs = new BroadcastStatus();
+                                bs.handleNewStatus(nsStatus, MainApp.instance().getApplicationContext(), isDelta);
                     /*  Other received data to 2016/02/10
                         {
                           status: 'ok'
@@ -240,97 +250,109 @@ public class NSClient {
                           , activeProfile ..... calculated from treatments or missing
                         }
                      */
-                }
-                if (data.has("profiles")) {
-                    JSONArray profiles = (JSONArray) data.getJSONArray("profiles");
-                    BroadcastProfile bp = new BroadcastProfile();
-                    if (profiles.length() > 0) {
-                        JSONObject profile = (JSONObject) profiles.get(profiles.length() - 1);
-                        NSProfile nsProfile = new NSProfile(profile,activeProfile);
-                        MainApp.setNsProfile(nsProfile);
-                        log.debug("NSCLIENT profile received: " + nsProfile.log());
-                        bp.handleNewTreatment(nsProfile, MainApp.instance().getApplicationContext(), isDelta);
-                    }
-                }
-                if (data.has("treatments")) {
-                    JSONArray treatments = (JSONArray) data.getJSONArray("treatments");
-                    BroadcastTreatment bt = new BroadcastTreatment();
-                    if (treatments.length() > 0) log.debug("NSCLIENT received " + treatments.length() + " treatments");
-                    for (Integer index = 0; index < treatments.length(); index++) {
-                        JSONObject jsonTreatment = treatments.getJSONObject(index);
-                        NSTreatment treatment =  new NSTreatment(jsonTreatment);
-                        // remove from upload queue if Ack is failing
-                        UploadQueue.removeID(jsonTreatment);
-                        if (treatment.getAction() == null) {
-                            // ********** TEST CODE ***********
-                            if (jsonTreatment.has("NSCLIENTTESTRECORD")) {
-                                MainApp.bus().post(new TestReceiveID(jsonTreatment.getString("_id")));
-                                log.debug("----- Broadcasting test _id -----");
-                                continue;
                             }
-                            // ********* TEST CODE END ********
-                            bt.handleNewTreatment(treatment,MainApp.instance().getApplicationContext(), isDelta);
-                        } else if (treatment.getAction().equals("update")) {
-                            bt.handleChangedTreatment(jsonTreatment, MainApp.instance().getApplicationContext(), isDelta);
-                        } else if (treatment.getAction().equals("remove")) {
-                            bt.handleRemovedTreatment(jsonTreatment, MainApp.instance().getApplicationContext(), isDelta);
+                            if (data.has("profiles")) {
+                                JSONArray profiles = (JSONArray) data.getJSONArray("profiles");
+                                BroadcastProfile bp = new BroadcastProfile();
+                                if (profiles.length() > 0) {
+                                    JSONObject profile = (JSONObject) profiles.get(profiles.length() - 1);
+                                    NSProfile nsProfile = new NSProfile(profile, activeProfile);
+                                    MainApp.setNsProfile(nsProfile);
+                                    log.debug("NSCLIENT profile received: " + nsProfile.log());
+                                    bp.handleNewTreatment(nsProfile, MainApp.instance().getApplicationContext(), isDelta);
+                                }
+                            }
+                            if (data.has("treatments")) {
+                                JSONArray treatments = (JSONArray) data.getJSONArray("treatments");
+                                BroadcastTreatment bt = new BroadcastTreatment();
+                                if (treatments.length() > 0)
+                                    log.debug("NSCLIENT received " + treatments.length() + " treatments");
+                                for (Integer index = 0; index < treatments.length(); index++) {
+                                    JSONObject jsonTreatment = treatments.getJSONObject(index);
+                                    NSTreatment treatment = new NSTreatment(jsonTreatment);
+                                    // remove from upload queue if Ack is failing
+                                    UploadQueue.removeID(jsonTreatment);
+                                    if (treatment.getAction() == null) {
+                                        // ********** TEST CODE ***********
+                                        if (jsonTreatment.has("NSCLIENTTESTRECORD")) {
+                                            MainApp.bus().post(new TestReceiveID(jsonTreatment.getString("_id")));
+                                            log.debug("----- Broadcasting test _id -----");
+                                            continue;
+                                        }
+                                        // ********* TEST CODE END ********
+                                        bt.handleNewTreatment(treatment, MainApp.instance().getApplicationContext(), isDelta);
+                                    } else if (treatment.getAction().equals("update")) {
+                                        bt.handleChangedTreatment(jsonTreatment, MainApp.instance().getApplicationContext(), isDelta);
+                                    } else if (treatment.getAction().equals("remove")) {
+                                        bt.handleRemovedTreatment(jsonTreatment, MainApp.instance().getApplicationContext(), isDelta);
+                                    }
+                                }
+                            }
+                            if (data.has("devicestatus")) {
+                                JSONArray devicestatuses = (JSONArray) data.getJSONArray("devicestatus");
+                                if (devicestatuses.length() > 0)
+                                    log.debug("NSCLIENT received " + devicestatuses.length() + " devicestatuses");
+                                for (Integer index = 0; index < devicestatuses.length(); index++) {
+                                    JSONObject jsonStatus = devicestatuses.getJSONObject(index);
+                                    // remove from upload queue if Ack is failing
+                                    UploadQueue.removeID(jsonStatus);
+                                }
+                            }
+                            if (data.has("mbgs")) {
+                                JSONArray mbgs = (JSONArray) data.getJSONArray("mbgs");
+                                if (mbgs.length() > 0)
+                                    log.debug("NSCLIENT received " + mbgs.length() + " mbgs");
+                                for (Integer index = 0; index < mbgs.length(); index++) {
+                                    JSONObject jsonMbg = mbgs.getJSONObject(index);
+                                    // remove from upload queue if Ack is failing
+                                    UploadQueue.removeID(jsonMbg);
+                                }
+                            }
+                            if (data.has("cals")) {
+                                JSONArray cals = (JSONArray) data.getJSONArray("cals");
+                                if (cals.length() > 0)
+                                    log.debug("NSCLIENT received " + cals.length() + " cals");
+                                // Retreive actual calibration
+                                for (Integer index = 0; index < cals.length(); index++) {
+                                    if (index == 0) {
+                                        actualCal.set(cals.optJSONObject(index));
+                                    }
+                                    // remove from upload queue if Ack is failing
+                                    UploadQueue.removeID(cals.optJSONObject(index));
+                                }
+                            }
+                            if (data.has("sgvs")) {
+                                BroadcastSgvs bs = new BroadcastSgvs();
+                                String units = MainApp.getNsProfile() != null ? MainApp.getNsProfile().getUnits() : "mg/dl";
+                                XDripEmulator emulator = new XDripEmulator();
+                                JSONArray sgvs = (JSONArray) data.getJSONArray("sgvs");
+                                if (sgvs.length() > 0)
+                                    log.debug("NSCLIENT received " + sgvs.length() + " sgvs");
+                                for (Integer index = 0; index < sgvs.length(); index++) {
+                                    JSONObject jsonSgv = sgvs.getJSONObject(index);
+                                    // log.debug("NSCLIENT svg " + sgvs.getJSONObject(index).toString());
+                                    NSSgv sgv = new NSSgv(jsonSgv);
+                                    // Handle new sgv here
+                                    if (emulatexDrip) {
+                                        BgReading bgReading = new BgReading(sgv, actualCal, units);
+                                        emulator.handleNewBgReading(bgReading, isFull && index == 0, MainApp.instance().getApplicationContext());
+                                    }
+                                    bs.handleNewSgv(sgv, MainApp.instance().getApplicationContext(), isDelta);
+                                    // remove from upload queue if Ack is failing
+                                    UploadQueue.removeID(jsonSgv);
+                                }
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
+                        //log.debug("NSCLIENT onDataUpdate end");
+                    } finally {
+                        wakeLock.release();
                     }
                 }
-                if (data.has("devicestatus")) {
-                    JSONArray devicestatuses = (JSONArray) data.getJSONArray("devicestatus");
-                    if (devicestatuses.length() > 0) log.debug("NSCLIENT received " + devicestatuses.length() + " devicestatuses");
-                    for (Integer index = 0; index < devicestatuses.length(); index++) {
-                        JSONObject jsonStatus = devicestatuses.getJSONObject(index);
-                        // remove from upload queue if Ack is failing
-                        UploadQueue.removeID(jsonStatus);
-                    }
-                }
-                if (data.has("mbgs")) {
-                    JSONArray mbgs = (JSONArray) data.getJSONArray("mbgs");
-                    if (mbgs.length() > 0) log.debug("NSCLIENT received " + mbgs.length() + " mbgs");
-                    for (Integer index = 0; index < mbgs.length(); index++) {
-                        JSONObject jsonMbg = mbgs.getJSONObject(index);
-                        // remove from upload queue if Ack is failing
-                        UploadQueue.removeID(jsonMbg);
-                    }
-                }
-                if (data.has("cals")) {
-                    JSONArray cals = (JSONArray) data.getJSONArray("cals");
-                    if (cals.length() > 0) log.debug("NSCLIENT received " + cals.length() + " cals");
-                    // Retreive actual calibration
-                    for (Integer index = 0; index < cals.length(); index++) {
-                        if (index ==0) {
-                            actualCal.set(cals.optJSONObject(index));
-                        }
-                        // remove from upload queue if Ack is failing
-                        UploadQueue.removeID(cals.optJSONObject(index));
-                    }
-                }
-                if (data.has("sgvs")) {
-                    BroadcastSgvs bs = new BroadcastSgvs();
-                    String units = MainApp.getNsProfile() != null ? MainApp.getNsProfile().getUnits() : "mg/dl";
-                    XDripEmulator emulator = new XDripEmulator();
-                    JSONArray sgvs = (JSONArray) data.getJSONArray("sgvs");
-                    if (sgvs.length() > 0) log.debug("NSCLIENT received " + sgvs.length() + " sgvs");
-                    for (Integer index = 0; index < sgvs.length(); index++) {
-                        JSONObject jsonSgv = sgvs.getJSONObject(index);
-                        // log.debug("NSCLIENT svg " + sgvs.getJSONObject(index).toString());
-                        NSSgv sgv = new NSSgv(jsonSgv);
-                        // Handle new sgv here
-                        if (emulatexDrip) {
-                            BgReading bgReading = new BgReading(sgv, actualCal, units);
-                            emulator.handleNewBgReading(bgReading, isFull && index == 0, MainApp.instance().getApplicationContext());
-                        }
-                        bs.handleNewSgv(sgv, MainApp.instance().getApplicationContext(), isDelta);
-                        // remove from upload queue if Ack is failing
-                        UploadQueue.removeID(jsonSgv);
-                    }
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            //log.debug("NSCLIENT onDataUpdate end");
+
+            };
+            update.start();
         }
     };
 
