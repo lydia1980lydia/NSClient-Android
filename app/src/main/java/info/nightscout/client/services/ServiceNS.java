@@ -177,7 +177,6 @@ public class ServiceNS extends Service {
                         e1.printStackTrace();
                     }
                 }
-                UploadQueue.resend();
                 restartingService = false;
             }
         };

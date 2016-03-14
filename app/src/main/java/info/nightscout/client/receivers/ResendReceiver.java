@@ -12,6 +12,6 @@ public class ResendReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        UploadQueue.resend();
+        UploadQueue.resend("Intent received");
     }
 }

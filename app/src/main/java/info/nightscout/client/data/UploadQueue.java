@@ -74,7 +74,7 @@ public class UploadQueue {
         return false;
     }
 
-    public static void resend() {
+    public static void resend(String reason) {
         if (queue.size() == 0)
             return;
 
@@ -82,7 +82,7 @@ public class UploadQueue {
         resendRunning = true;
 
         final NSClient nsClient = MainApp.getNSClient();
-        log.debug("QUEUE Resend started");
+        log.debug("QUEUE Resend started: " + reason);
 
         Thread doResend = new Thread() {
             public void run() {

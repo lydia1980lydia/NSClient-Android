@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (id == R.id.action_deliverqueue) {
-            UploadQueue.resend();
+            UploadQueue.resend("Menu");
             return true;
         }
 

@@ -195,7 +195,7 @@ public class NSClient {
         public void call(final Object... args) {
             if (Config.detailedLog) log.debug("NSCLIENT Ping received");
             // send data if there is something waiting
-            UploadQueue.resend();
+            UploadQueue.resend("Ping received");
         }
     };
 
