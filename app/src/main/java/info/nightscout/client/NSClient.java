@@ -59,7 +59,7 @@ public class NSClient {
     private Integer nsHours = 1;
     private boolean acquireWiFiLock = false;
 
-    private final Integer timeToWaitForResponseInMs = 10000;
+    private final Integer timeToWaitForResponseInMs = 30000;
     private boolean uploading = false;
 
     private String nsAPIhashCode = "";
