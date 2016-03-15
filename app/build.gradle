@@ -8,8 +8,8 @@ android {
         applicationId "info.nightscout.client"
         minSdkVersion 19
         targetSdkVersion 22
-        versionCode 106
-        versionName "1.06"
+        versionCode 107
+        versionName "1.07"
     }
     buildTypes {
         release {
