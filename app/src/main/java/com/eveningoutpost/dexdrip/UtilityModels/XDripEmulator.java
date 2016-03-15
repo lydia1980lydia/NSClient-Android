@@ -26,6 +26,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import info.nightscout.client.Config;
 import info.nightscout.client.MainApp;
 
 /**
@@ -42,7 +43,18 @@ public class XDripEmulator {
     private static ScheduledFuture<?> outgoingIntent = null;
 
     public void addBgReading(BgReading bgReading) {
+        bgReading.date = (new Date(bgReading.timestamp)).toString();
+
+        // Skip if already exists
+        for (int c = 0; c < latest6bgReadings.size(); c++) {
+            if (latest6bgReadings.get(c).timestamp == bgReading.timestamp) {
+                log.debug("Not adding duplicate reading");
+                return;
+            }
+        }
+
         latest6bgReadings.add(bgReading);
+
         // sort
         class BgReadingsComparator implements Comparator<BgReading> {
             @Override
@@ -52,8 +64,44 @@ public class XDripEmulator {
         }
         Collections.sort(latest6bgReadings, new BgReadingsComparator());
 
+        Long msec6min = 6l * 60 * 1000;
+        Long msec5min = 5l * 60 * 1000;
+        Long msec1min = 1l * 60 * 1000;
+
+        // go through from newest
+        BgReading newest = latest6bgReadings.get(latest6bgReadings.size() - 1);
+        // now process 5 older
+        for (int c = 1; c < 6; c++) {
+            int processingIndex = latest6bgReadings.size() - 1 - c;
+            if (processingIndex < 0) {
+                // not enough intems in array
+                processingIndex++;
+                latest6bgReadings.add(0, latest6bgReadings.get(processingIndex));
+            }
+            BgReading processing = latest6bgReadings.get(processingIndex);
+            long offsetToNewest = newest.timestamp - processing.timestamp;
+
+            if (offsetToNewest > (c * msec5min) + msec1min) {
+                // how many are missing
+                int missing = (int)((offsetToNewest - (c * msec5min) + msec1min) / msec5min);
+                while (missing > 0) {
+                    latest6bgReadings.add(processingIndex, processing);
+                    missing--;
+                    c++;
+                }
+            }
+        }
+
         // cut off to 6 records
-        if (latest6bgReadings.size() > 7) latest6bgReadings.remove(0);
+        while (latest6bgReadings.size() > 7) latest6bgReadings.remove(0);
+
+        //log
+        if (Config.detailedLog) {
+            for (int c = 0; c < latest6bgReadings.size(); c++) {
+                log.debug("DANABG " + c + " " + (new Date(latest6bgReadings.get(c).timestamp)));
+            }
+
+        }
     }
 
     public void handleNewBgReading(BgReading bgReading, boolean isFull, Context context) {
@@ -110,6 +158,13 @@ public class XDripEmulator {
         boolean notGood = false;
 
         if (sizeRecords > 6) {
+            BgReading timeMatchedRecordCurrent = latest6bgReadings.get(sizeRecords - 1);
+            long now = (new Date()).getTime();
+            long msec7min = 7l * 60 * 1000;
+            if (now - timeMatchedRecordCurrent.timestamp >msec7min) {
+                log.debug("Data too old to send to DanaAps");
+                return;
+            }
             for (int i = sizeRecords - 6; i < sizeRecords; i++) {
                 short glucoseValueBeeingProcessed = (short) latest6bgReadings.get(i).value;
                 //log.debug("DANAAPP" + i + ": " + formatNumber1place.format(glucoseValueBeeingProcessed / 18d));
@@ -132,7 +187,6 @@ public class XDripEmulator {
             if (notGood) return;
 
             Bundle bundle = new Bundle();
-            BgReading timeMatchedRecordCurrent = latest6bgReadings.get(sizeRecords - 1);
             bundle.putLong("time", timeMatchedRecordCurrent.timestamp);
             bundle.putInt("value", (int) timeMatchedRecordCurrent.value);
             bundle.putInt("delta", (int) (timeMatchedRecordCurrent.value - latest6bgReadings.get(sizeRecords - 2).value));

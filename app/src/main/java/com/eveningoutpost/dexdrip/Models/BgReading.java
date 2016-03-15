@@ -1,6 +1,7 @@
 package com.eveningoutpost.dexdrip.Models;
 
 import java.text.DecimalFormat;
+import java.util.Date;
 
 import info.nightscout.client.data.NSCal;
 import info.nightscout.client.data.NSSgv;
@@ -12,6 +13,7 @@ public class BgReading {
     public double value;
     public int battery_level;
     public String units = " mg/dl";
+    public String date;
 
     public BgReading() {}
 
@@ -21,6 +23,7 @@ public class BgReading {
         timestamp = sgv.getMills();
         value = sgv.getMgdl();
         battery_level = 50;
+        date = (new Date(timestamp)).toString();
     }
 
     public BgReading(NSSgv sgv, NSCal cal, String units) {
