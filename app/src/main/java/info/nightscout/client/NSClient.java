@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URISyntaxException;
+import java.util.Date;
 
 import info.nightscout.client.acks.NSAddAck;
 import info.nightscout.client.acks.NSAuthAck;
@@ -270,6 +271,7 @@ public class NSClient {
                                 for (Integer index = 0; index < treatments.length(); index++) {
                                     JSONObject jsonTreatment = treatments.getJSONObject(index);
                                     NSTreatment treatment = new NSTreatment(jsonTreatment);
+                                    if (!isCurrent(treatment)) continue;
                                     // remove from upload queue if Ack is failing
                                     UploadQueue.removeID(jsonTreatment);
                                     if (treatment.getAction() == null) {
@@ -550,6 +552,18 @@ public class NSClient {
             return;
         }
         uploading = false;
+    }
+
+
+    private boolean isCurrent(NSTreatment treatment) {
+        long now = (new Date()).getTime();
+        long minPast = now - nsHours * 60l * 60 * 1000;
+        if (treatment.getMills() == null) {
+            log.debug("treatment.getMills() == null " + treatment);
+            return false;
+        }
+        if (treatment.getMills() > minPast) return true;
+        return false;
     }
 
     public void keepWiFiOn(Context context, boolean on) {

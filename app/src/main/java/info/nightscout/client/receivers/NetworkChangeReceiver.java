@@ -13,12 +13,20 @@ import org.slf4j.LoggerFactory;
 
 import info.nightscout.client.MainApp;
 import info.nightscout.client.events.RestartEvent;
+import info.nightscout.client.services.ServiceNS;
+
+import static android.support.v4.content.WakefulBroadcastReceiver.startWakefulService;
 
 public class NetworkChangeReceiver extends BroadcastReceiver {
     private static Logger log = LoggerFactory.getLogger(NetworkChangeReceiver.class);
 
     @Override
     public void onReceive(final Context context, final Intent intent) {
+        // Wakeup service
+        startWakefulService(context, new Intent(context, ServiceNS.class)
+                .setAction(intent.getAction())
+                .putExtras(intent));
+
         Bundle bundles = intent.getExtras();
         if (bundles == null)
             return;
