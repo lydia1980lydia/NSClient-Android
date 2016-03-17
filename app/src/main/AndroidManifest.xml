@@ -103,6 +103,9 @@
             android:exported="false"
             android:process=":mainProcess" />
 
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="c768f534949bb913ea0c73f41cfa4ed582ef8ec8" />
     </application>
 
 </manifest>

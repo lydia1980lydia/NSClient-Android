@@ -2,9 +2,11 @@ package info.nightscout.client;
 
 import android.app.Application;
 
+import com.crashlytics.android.Crashlytics;
 import com.squareup.otto.Bus;
 import com.squareup.otto.ThreadEnforcer;
 
+import io.fabric.sdk.android.Fabric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +34,7 @@ public class MainApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        Fabric.with(this, new Crashlytics());
         sInstance = this;
 
         sBus = new Bus(ThreadEnforcer.ANY);

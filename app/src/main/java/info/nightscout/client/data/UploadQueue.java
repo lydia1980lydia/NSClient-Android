@@ -82,6 +82,8 @@ public class UploadQueue {
         resendRunning = true;
 
         final NSClient nsClient = MainApp.getNSClient();
+        if (nsClient == null) return;
+
         log.debug("QUEUE Resend started: " + reason);
 
         Thread doResend = new Thread() {
