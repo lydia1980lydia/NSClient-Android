@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Looper;
 import android.support.v7.app.NotificationCompat;
 
 import com.squareup.otto.Subscribe;
@@ -156,6 +157,7 @@ public class ServiceNS extends Service {
         Thread restart = new Thread() {
             @Override
             public void run() {
+                Looper.prepare();
                 log.debug("----- Restarting WS Client");
                 MainApp.setNSClient(null);
                 mNSClient.destroy();
