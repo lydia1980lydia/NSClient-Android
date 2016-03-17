@@ -11,7 +11,6 @@
             android:summary="">
         </SwitchPreference>
         <EditTextPreference
-            android:dependency="ns_enable"
             android:title="@string/ns_url_title"
             android:key="ns_url"
             android:dialogTitle="@string/ns_url_dialogtitle"
@@ -20,7 +19,6 @@
             android:inputType="textUri">
         </EditTextPreference>
         <EditTextPreference
-            android:dependency="ns_enable"
             android:title="@string/ns_api_secret_title"
             android:key="ns_api_secret"
             android:dialogTitle="@string/ns_api_secret_dialogtitle"
