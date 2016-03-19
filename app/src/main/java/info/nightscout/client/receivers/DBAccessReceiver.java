@@ -46,6 +46,11 @@ public class DBAccessReceiver extends BroadcastReceiver {
             try { _id = bundles.getString("_id"); } catch (Exception e) {}
             try { data = new JSONObject(bundles.getString("data")); } catch (Exception e) {}
 
+            if (data == null) {
+                log.debug("DBACCESS no data inside record");
+                return;
+            }
+
             // mark by id
             try {
                 data.put("NSCLIENT_ID", (new Date()).getTime());
