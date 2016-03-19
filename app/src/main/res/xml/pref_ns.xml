@@ -68,6 +68,11 @@
             android:defaultValue="400"
             android:inputType="numberDecimal">
         </EditTextPreference>
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="enable_crashlytics"
+            android:summary="Send crash errors to developer"
+            android:title="Automatic Crash Reporting" />
     </PreferenceCategory>
 
     <PreferenceCategory
