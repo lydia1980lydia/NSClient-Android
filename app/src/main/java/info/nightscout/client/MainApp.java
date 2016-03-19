@@ -1,6 +1,7 @@
 package info.nightscout.client;
 
 import android.app.Application;
+import android.preference.PreferenceManager;
 
 import com.crashlytics.android.Crashlytics;
 import com.squareup.otto.Bus;
@@ -34,7 +35,9 @@ public class MainApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Fabric.with(this, new Crashlytics());
+        if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("enable_crashlytics", true)) {
+            Fabric.with(this, new Crashlytics());
+        }
         sInstance = this;
 
         sBus = new Bus(ThreadEnforcer.ANY);

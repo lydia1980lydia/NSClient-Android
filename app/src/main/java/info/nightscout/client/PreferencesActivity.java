@@ -3,9 +3,11 @@ package info.nightscout.client;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.widget.Toast;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,7 @@ public class PreferencesActivity extends PreferenceActivity implements SharedPre
         super.onCreate(savedInstanceState);
         getFragmentManager().beginTransaction().replace(android.R.id.content, new MyPreferenceFragment()).commit();
         PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this);
+
     }
 
     @Override
@@ -46,6 +49,17 @@ public class PreferencesActivity extends PreferenceActivity implements SharedPre
         {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.pref_ns);
+
+            final Preference crash_reports = findPreference("enable_crashlytics");
+            crash_reports.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    Toast.makeText(preference.getContext(),
+                            "Crash Setting takes effect on next restart", Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            });
+
         }
     }
 
