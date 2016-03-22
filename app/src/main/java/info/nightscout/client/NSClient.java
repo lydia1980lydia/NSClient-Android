@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.net.wifi.WifiManager;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
@@ -47,10 +49,14 @@ import io.socket.emitter.Emitter;
 public class NSClient {
     private static Integer dataCounter = 0;
 
+    static Handler handler;
+    static private HandlerThread handlerThread;
+
     private Bus mBus;
     private static Logger log = LoggerFactory.getLogger(NSClient.class);
     private Socket mSocket;
-    private boolean isConnected = false;
+    public boolean isConnected = false;
+    public boolean forcerestart = false;
     private String connectionStatus = "Not connected";
 
     private boolean nsEnabled = false;
@@ -72,6 +78,12 @@ public class NSClient {
         mBus = bus;
 
         dataCounter = 0;
+
+        if(handler==null) {
+            handlerThread = new HandlerThread(NSClient.class.getSimpleName() + "Handler");
+            handlerThread.start();
+            handler = new Handler(handlerThread.getLooper());
+        }
 
         readPreferences();
 
@@ -143,6 +155,7 @@ public class NSClient {
             authMessage.put("pingme", true); // send mi pings to keep alive
             authMessage.put("secret", nsAPIhashCode);
         } catch (JSONException e) {
+            e.printStackTrace();
             return;
         }
         log.debug("NSCLIENT authorize " + mSocket.id());
@@ -203,7 +216,7 @@ public class NSClient {
     private Emitter.Listener onDataUpdate = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
-            Thread update = new Thread() {
+            handler.post(new Runnable() {
                 @Override
                 public void run() {
                     PowerManager powerManager = (PowerManager) MainApp.instance().getApplicationContext().getSystemService(Context.POWER_SERVICE);
@@ -271,7 +284,6 @@ public class NSClient {
                                 for (Integer index = 0; index < treatments.length(); index++) {
                                     JSONObject jsonTreatment = treatments.getJSONObject(index);
                                     NSTreatment treatment = new NSTreatment(jsonTreatment);
-                                    if (!isCurrent(treatment)) continue;
                                     // remove from upload queue if Ack is failing
                                     UploadQueue.removeID(jsonTreatment);
                                     if (treatment.getAction() == null) {
@@ -282,8 +294,10 @@ public class NSClient {
                                             continue;
                                         }
                                         // ********* TEST CODE END ********
+                                        if (!isCurrent(treatment)) continue;
                                         bt.handleNewTreatment(treatment, MainApp.instance().getApplicationContext(), isDelta);
                                     } else if (treatment.getAction().equals("update")) {
+                                        if (!isCurrent(treatment)) continue;
                                         bt.handleChangedTreatment(jsonTreatment, MainApp.instance().getApplicationContext(), isDelta);
                                     } else if (treatment.getAction().equals("remove")) {
                                         bt.handleRemovedTreatment(jsonTreatment, MainApp.instance().getApplicationContext(), isDelta);
@@ -353,8 +367,7 @@ public class NSClient {
                     }
                 }
 
-            };
-            update.start();
+            });
         }
     };
 
@@ -559,7 +572,7 @@ public class NSClient {
         long now = (new Date()).getTime();
         long minPast = now - nsHours * 60l * 60 * 1000;
         if (treatment.getMills() == null) {
-            log.debug("treatment.getMills() == null " + treatment);
+            log.debug("treatment.getMills() == null " + treatment.getData().toString());
             return false;
         }
         if (treatment.getMills() > minPast) return true;

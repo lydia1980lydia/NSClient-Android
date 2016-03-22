@@ -15,6 +15,7 @@ import info.nightscout.client.acks.NSAddAck;
 import info.nightscout.client.acks.NSUpdateAck;
 import info.nightscout.client.broadcasts.BroadcastQueueStatus;
 import info.nightscout.client.broadcasts.BroadcastStatus;
+import info.nightscout.client.events.RestartEvent;
 
 /**
  * Created by mike on 21.02.2016.
@@ -32,6 +33,10 @@ public class UploadQueue {
 
     public static String status() {
         return "QUEUE: " + queue.size();
+    }
+
+    public static void add(DbRequest dbr) {
+        queue.put(dbr.hash(), dbr);
     }
 
     public static void put(String hash, DbRequest dbr) {
@@ -78,11 +83,12 @@ public class UploadQueue {
         if (queue.size() == 0)
             return;
 
-        if (resendRunning) return;
-        resendRunning = true;
-
         final NSClient nsClient = MainApp.getNSClient();
         if (nsClient == null) return;
+        if (!nsClient.isConnected) return;
+
+        if (resendRunning) return;
+        resendRunning = true;
 
         log.debug("QUEUE Resend started: " + reason);
 
@@ -146,6 +152,7 @@ public class UploadQueue {
             e.printStackTrace();
         }
         resendRunning = false;
+        log.debug("QUEUE Resend ended: " + reason);
     }
 
 }

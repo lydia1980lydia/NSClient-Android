@@ -192,7 +192,7 @@ public class Socket extends Emitter {
                 Packet<JSONArray> packet = new Packet<JSONArray>(parserType, jsonArgs);
 
                 if (_args.get(_args.size() - 1) instanceof Ack) {
-                    log.debug(String.format("emitting packet with ack id %d", Socket.this.ids));
+                    log.debug(String.format("emitting packet with ack id %d with %s", Socket.this.ids, packet.data));
                     Socket.this.acks.put(Socket.this.ids, (Ack)_args.remove(_args.size() - 1));
                     jsonArgs = remove(jsonArgs, jsonArgs.length() - 1);
                     packet.data = jsonArgs;
@@ -251,7 +251,7 @@ public class Socket extends Emitter {
                 int parserType = HasBinary.hasBinary(jsonArgs) ? Parser.BINARY_EVENT : Parser.EVENT;
                 Packet<JSONArray> packet = new Packet<JSONArray>(parserType, jsonArgs);
 
-                log.debug(String.format("emitting packet with ack id %d", ids));
+                log.debug(String.format("emitting packet with ack id %d with %s", ids, packet.data));
                 Socket.this.acks.put(ids, ack);
                 packet.id = ids++;
 

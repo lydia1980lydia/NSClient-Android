@@ -152,7 +152,10 @@ public class ServiceNS extends Service {
 
     @Subscribe
     public void onStatusEvent(final RestartEvent e) {
-        if (restartingService) return;
+        if (restartingService) {
+            log.debug("Restarting of WS Client already in progress");
+            return;
+        }
         restartingService = true;
         Thread restart = new Thread() {
             @Override
@@ -180,6 +183,7 @@ public class ServiceNS extends Service {
                     }
                 }
                 restartingService = false;
+                log.debug("Restarting of WS Client already finished");
             }
         };
         restart.start();

@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import info.nightscout.client.MainApp;
+import info.nightscout.client.events.RestartEvent;
 import io.socket.client.Ack;
 
 /**
@@ -36,11 +37,10 @@ public class NSAddAck implements Ack {
             if (response.has("result")) {
                 _id = null;
                 if (response.getString("result").equals("Not authorized")) {
-                    NSAuthAck ack = new NSAuthAck();
-                    MainApp.getNSClient().sendAuthMessage(ack);
                     synchronized(this) {
                         this.notify();
                     }
+                    MainApp.getNSClient().forcerestart = true;
                     return;
                 }
                 log.debug("DBACCESS " + response.getString("result"));
@@ -50,6 +50,7 @@ public class NSAddAck implements Ack {
             }
             return;
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

@@ -1,4 +1,4 @@
-package info.nightscout.nsupload;
+package info.nightscout.client;
 
 import org.junit.Test;
 

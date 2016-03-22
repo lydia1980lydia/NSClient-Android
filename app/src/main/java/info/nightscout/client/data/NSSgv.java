@@ -26,8 +26,8 @@ public class NSSgv {
         return ret;
     };
 
-    private Integer getIntegerOrNull(String key) {
-        Integer ret = null;
+    private Integer getIntegerOrZero(String key) {
+        Integer ret = 0;
         if (data.has(key)) {
             try {
                 ret = data.getInt(key);
@@ -49,11 +49,11 @@ public class NSSgv {
     };
 
     public JSONObject getData () { return data; }
-    public Integer getMgdl () { return getIntegerOrNull("mgdl"); }
-    public Integer getFiltered () { return getIntegerOrNull("filtered"); }
-    public Integer getUnfiltered () { return getIntegerOrNull("unfiltered"); }
-    public Integer getNoise () { return getIntegerOrNull("noise"); }
-    public Integer getRssi () { return getIntegerOrNull("rssi"); }
+    public Integer getMgdl () { return getIntegerOrZero("mgdl"); }
+    public Integer getFiltered () { return getIntegerOrZero("filtered"); }
+    public Integer getUnfiltered () { return getIntegerOrZero("unfiltered"); }
+    public Integer getNoise () { return getIntegerOrZero("noise"); }
+    public Integer getRssi () { return getIntegerOrZero("rssi"); }
     public Long getMills () { return getLongOrNull("mills"); }
     public String getDevice () { return getStringOrNull("device"); }
     public String getDirection () { return getStringOrNull("direction"); }
