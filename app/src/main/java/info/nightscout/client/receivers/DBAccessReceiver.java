@@ -58,73 +58,14 @@ public class DBAccessReceiver extends BroadcastReceiver {
                 e.printStackTrace();
             }
 
-            if (action.equals("dbAdd")) {
-                if (!isAllowedCollection(collection)) {
-                    log.debug("DBACCESS wrong collection specified");
-                    return;
-                }
-                DbRequest dbar = new DbRequest("dbAdd", collection, data);
-                NSAddAck addAck = new NSAddAck();
-                nsClient.dbAdd(dbar, addAck);
-                if (addAck._id == null) {
-                    log.debug("DBACCESS No response on dbAdd");
-                    UploadQueue.put(dbar.hash(), dbar);
-                    log.debug(UploadQueue.status());
-                    return;
-                }
-                log.debug("DBACCESS dbAdd processed: " + data.toString());
+            if (!isAllowedCollection(collection)) {
+                log.debug("DBACCESS wrong collection specified");
+                return;
             }
 
-            if (action.equals("dbRemove")) {
-                if (!isAllowedCollection(collection)) {
-                    log.debug("DBACCESS wrong collection specified");
-                    return;
-                }
-                DbRequest dbrr = new DbRequest("dbRemove", collection, _id);
-                NSUpdateAck updateAck = new NSUpdateAck();
-                nsClient.dbRemove(dbrr, updateAck);
-                if (!updateAck.result) {
-                    log.debug("DBACCESS No response on dbRemove");
-                    UploadQueue.put(dbrr.hash(), dbrr);
-                    log.debug(UploadQueue.status());
-                    return;
-                }
-                log.debug("DBACCESS dbRemove processed: " + _id);
-            }
+            DbRequest dbr = new DbRequest(action, collection, data);
+            UploadQueue.add(dbr);
 
-            if (action.equals("dbUpdate")) {
-                if (!isAllowedCollection(collection)) {
-                    log.debug("DBACCESS wrong collection specified");
-                    return;
-                }
-                DbRequest dbur = new DbRequest("dbUpdate", collection, _id, data);
-                NSUpdateAck updateAck = new NSUpdateAck();
-                nsClient.dbUpdate(dbur, updateAck);
-                if (!updateAck.result) {
-                    log.debug("DBACCESS No response on dbUpdate");
-                    UploadQueue.put(dbur.hash(), dbur);
-                    log.debug(UploadQueue.status());
-                    return;
-                }
-                log.debug("DBACCESS dbUpdate processed: " + _id + " " + data.toString());
-            }
-
-            if (action.equals("dbUpdateUnset")) {
-                if (!isAllowedCollection(collection)) {
-                    log.debug("DBACCESS wrong collection specified");
-                    return;
-                }
-                DbRequest dbur = new DbRequest("dbUpdateUnset", collection, _id, data);
-                NSUpdateAck updateAck = new NSUpdateAck();
-                nsClient.dbUpdateUnset(dbur, updateAck);
-                if (!updateAck.result) {
-                    log.debug("DBACCESS No response on dbUpdateUnset");
-                    UploadQueue.put(_id, dbur);
-                    log.debug(UploadQueue.status());
-                    return;
-                }
-                log.debug("DBACCESS dbUpdateUnset processed: " + _id + " " + data.toString());
-            }
         } finally {
             wakeLock.release();
         }

@@ -49,12 +49,14 @@ import io.socket.emitter.Emitter;
 public class NSClient {
     private static Integer dataCounter = 0;
 
-    static Handler handler;
+    static public Handler handler;
     static private HandlerThread handlerThread;
+
+    public static UploadQueue uploadQueue = new UploadQueue();
 
     private Bus mBus;
     private static Logger log = LoggerFactory.getLogger(NSClient.class);
-    private Socket mSocket;
+    public Socket mSocket;
     public boolean isConnected = false;
     public boolean forcerestart = false;
     private String connectionStatus = "Not connected";
@@ -278,6 +280,7 @@ public class NSClient {
                             }
                             if (data.has("treatments")) {
                                 JSONArray treatments = (JSONArray) data.getJSONArray("treatments");
+                                JSONArray removedTreatments = new JSONArray();
                                 BroadcastTreatment bt = new BroadcastTreatment();
                                 if (treatments.length() > 0)
                                     log.debug("NSCLIENT received " + treatments.length() + " treatments");
@@ -300,8 +303,11 @@ public class NSClient {
                                         if (!isCurrent(treatment)) continue;
                                         bt.handleChangedTreatment(jsonTreatment, MainApp.instance().getApplicationContext(), isDelta);
                                     } else if (treatment.getAction().equals("remove")) {
-                                        bt.handleRemovedTreatment(jsonTreatment, MainApp.instance().getApplicationContext(), isDelta);
+                                        removedTreatments.put(treatment);
                                     }
+                                }
+                                if (removedTreatments.length() > 0) {
+                                    bt.handleRemovedTreatment(removedTreatments, MainApp.instance().getApplicationContext(), isDelta);
                                 }
                             }
                             if (data.has("devicestatus")) {

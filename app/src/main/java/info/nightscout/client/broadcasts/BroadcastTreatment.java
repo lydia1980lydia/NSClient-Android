@@ -9,6 +9,7 @@ import android.os.PowerManager;
 import android.preference.PreferenceManager;
 
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -66,6 +67,18 @@ public class BroadcastTreatment {
         try {
             log.debug("TREAT_REMOVE " + treatment.getString("_id") + " " + x.size() + " receivers");
         } catch (JSONException e) {}
+    }
+
+    public void handleRemovedTreatment(JSONArray treatments, Context context, boolean isDelta) {
+        Bundle bundle = new Bundle();
+        bundle.putString("treatments", treatments.toString());
+        bundle.putBoolean("delta", isDelta);
+        Intent intent = new Intent(Intents.ACTION_REMOVED_TREATMENT);
+        intent.putExtras(bundle);
+        context.sendBroadcast(intent);
+        List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
+
+        log.debug("TREAT_REMOVE " + treatments.length() + " treatments " + x.size() + " receivers");
     }
 
 }

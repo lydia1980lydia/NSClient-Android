@@ -30,8 +30,6 @@ public class MainApp extends Application {
     public static NSProfile nsProfile;
     public static String nsActiveProfile = null;
 
-    public static UploadQueue uploadQueue = new UploadQueue();
-
     @Override
     public void onCreate() {
         super.onCreate();
