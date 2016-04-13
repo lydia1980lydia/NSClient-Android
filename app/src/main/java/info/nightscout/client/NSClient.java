@@ -382,8 +382,6 @@ public class NSClient {
             if (!isConnected) return;
             if (uploading) {
                 log.debug("DBUPDATE Busy, adding to queue");
-                UploadQueue.put(dbr.hash(), dbr);
-                log.debug(UploadQueue.status());
                 return;
             }
             uploading = true;
@@ -410,8 +408,6 @@ public class NSClient {
             if (!isConnected) return;
             if (uploading) {
                 log.debug("DBUPDATE Busy, adding to queue");
-                UploadQueue.put(dbr.hash(), dbr);
-                log.debug(UploadQueue.status());
                 return;
             }
             uploading = true;
@@ -432,8 +428,6 @@ public class NSClient {
             if (!isConnected) return;
             if (uploading) {
                 log.debug("DBUPUNSET Busy, adding to queue");
-                UploadQueue.put(dbr.hash(), dbr);
-                log.debug(UploadQueue.status());
                 return;
             }
             uploading = true;
@@ -460,8 +454,6 @@ public class NSClient {
             if (!isConnected) return;
             if (uploading) {
                 log.debug("DBUPUNSET Busy, adding to queue");
-                UploadQueue.put(dbr.hash(), dbr);
-                log.debug(UploadQueue.status());
                 return;
             }
             uploading = true;
@@ -482,8 +474,6 @@ public class NSClient {
             if (!isConnected) return;
             if (uploading) {
                 log.debug("DBREMOVE Busy, adding to queue");
-                UploadQueue.put(dbr.hash(), dbr);
-                log.debug(UploadQueue.status());
                 return;
             }
             uploading = true;
@@ -509,8 +499,6 @@ public class NSClient {
             if (!isConnected) return;
             if (uploading) {
                 log.debug("DBREMOVE Busy, adding to queue");
-                UploadQueue.put(dbr.hash(), dbr);
-                log.debug(UploadQueue.status());
                 return;
             }
             uploading = true;
@@ -530,8 +518,6 @@ public class NSClient {
             if (!isConnected) return;
             if (uploading) {
                 log.debug("DBADD Busy, adding to queue");
-                UploadQueue.put(dbr.hash(), dbr);
-                log.debug(UploadQueue.status());
                 return;
             }
             uploading = true;
@@ -557,8 +543,6 @@ public class NSClient {
             if (!isConnected) return;
             if (uploading) {
                 log.debug("DBADD Busy, adding to queue");
-                UploadQueue.put(dbr.hash(), dbr);
-                log.debug(UploadQueue.status());
                 return;
             }
             uploading = true;

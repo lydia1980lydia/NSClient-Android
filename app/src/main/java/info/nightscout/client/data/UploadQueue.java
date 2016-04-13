@@ -39,6 +39,7 @@ public class UploadQueue {
         nsClient.handler.post(new Runnable() {
             @Override
             public void run() {
+                log.debug("QUEUE adding: " + dbr.data.toString());
                 queue.put(dbr.hash(), dbr);
             }
         });
@@ -121,7 +122,7 @@ public class UploadQueue {
                 Logger log = LoggerFactory.getLogger(UploadQueue.class);
                 Iterator<Map.Entry<String, DbRequest>> iter = queue.entrySet().iterator();
 
-                if (!nsClient.mSocket.connected()) return;
+                if (nsClient.mSocket == null || !nsClient.mSocket.connected()) return;
 
                 while (iter.hasNext()) {
                     DbRequest dbr = iter.next().getValue();
