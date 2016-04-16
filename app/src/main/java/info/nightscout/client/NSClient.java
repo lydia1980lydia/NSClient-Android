@@ -188,6 +188,12 @@ public class NSClient {
             connectionStatus += ')';
             isConnected = true;
             mBus.post(new NSStatusEvent(connectionStatus));
+            if (!ack.write) {
+                Toast.makeText(MainApp.instance().getApplicationContext(), "Write permission not granted", Toast.LENGTH_LONG).show();
+            }
+            if (!ack.write_treatment) {
+                Toast.makeText(MainApp.instance().getApplicationContext(), "Write treatment permission not granted", Toast.LENGTH_LONG).show();
+            }
         } else {
             log.debug("NSCLIENT Auth timed out "  + mSocket.id());
             isConnected = true;
