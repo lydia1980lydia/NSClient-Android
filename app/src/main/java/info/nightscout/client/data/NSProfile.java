@@ -20,6 +20,18 @@ public class NSProfile {
         this.activeProfile = activeProfile;
     }
 
+    public NSProfile(JSONObject json) {
+        this.json = json;
+    }
+
+    public String getActiveProfileName() {
+        return activeProfile;
+    }
+
+    public void setActiveProfileName(String name) {
+        activeProfile = name;
+    }
+
     JSONObject getDefaultProfile() {
         String defaultProfileName = null;
         JSONObject store;

@@ -14,6 +14,7 @@ import android.widget.Toast;
 import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.UtilityModels.XDripEmulator;
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
 import com.google.common.hash.Hashing;
 import com.squareup.otto.Bus;
 
@@ -239,27 +240,49 @@ public class NSClient {
                         mBus.post(new NSStatusEvent(connectionStatus));
 
                         JSONObject data = (JSONObject) args[0];
-                        String activeProfile = MainApp.getNsActiveProfile();
                         NSCal actualCal = new NSCal();
+                        boolean broadcastProfile = false;
                         try {
                             // delta means only increment/changes are comming
                             boolean isDelta = data.has("delta");
                             boolean isFull = !isDelta;
                             log.debug("NSCLIENT Data packet #" + dataCounter + (isDelta ? " delta" : " full"));
 
+                            if (data.has("profiles")) {
+                                JSONArray profiles = (JSONArray) data.getJSONArray("profiles");
+                                if (profiles.length() > 0) {
+                                    JSONObject profile = (JSONObject) profiles.get(profiles.length() - 1);
+                                    NSProfile nsProfile = new NSProfile(profile);
+                                    MainApp.setNsProfile(nsProfile);
+                                    broadcastProfile = true;
+                                    log.debug("NSCLIENT profile received");
+                                }
+                            }
+
                             if (data.has("status")) {
                                 JSONObject status = data.getJSONObject("status");
                                 NSStatus nsStatus = new NSStatus(status);
-                                activeProfile = nsStatus.getActiveProfile();
-                                MainApp.setNsActiveProfile(activeProfile);
-                                if (activeProfile != null) {
-                                    log.debug("NSCLIENT status activeProfile received: " + activeProfile);
-                                }
-                                BroadcastStatus bs = new BroadcastStatus();
-                                bs.handleNewStatus(nsStatus, MainApp.instance().getApplicationContext(), isDelta);
 
                                 if (!status.has("versionNum") || status.getInt("versionNum") < 900) {
                                     Toast.makeText(MainApp.instance().getApplicationContext(), "Unsupported Nightscout version", Toast.LENGTH_LONG).show();
+                                }
+
+                                BroadcastStatus bs = new BroadcastStatus();
+                                bs.handleNewStatus(nsStatus, MainApp.instance().getApplicationContext(), isDelta);
+
+                                if (MainApp.getNsProfile() != null) {
+                                    String oldActiveProfile = MainApp.getNsProfile().getActiveProfile();
+                                    String receivedActiveProfile = nsStatus.getActiveProfile();
+                                    MainApp.getNsProfile().setActiveProfileName(receivedActiveProfile);
+                                    if (receivedActiveProfile != null) {
+                                        log.debug("NSCLIENT status activeProfile received: " + receivedActiveProfile);
+                                    }
+                                    // Change possible nulls to ""
+                                    String oldP = oldActiveProfile == null ? "" : oldActiveProfile;
+                                    String newP = receivedActiveProfile == null ? "" : receivedActiveProfile;
+                                    if (!newP.equals(oldP)) {
+                                        broadcastProfile = true;
+                                    }
                                 }
                     /*  Other received data to 2016/02/10
                         {
@@ -280,17 +303,14 @@ public class NSClient {
                             } else if (!isDelta){
                                 Toast.makeText(MainApp.instance().getApplicationContext(), "Unsupported Nightscout version", Toast.LENGTH_LONG).show();
                             }
-                            if (data.has("profiles")) {
-                                JSONArray profiles = (JSONArray) data.getJSONArray("profiles");
+
+                            // If new profile received or change detected broadcast it
+                            if (broadcastProfile && MainApp.getNsProfile()!= null) {
                                 BroadcastProfile bp = new BroadcastProfile();
-                                if (profiles.length() > 0) {
-                                    JSONObject profile = (JSONObject) profiles.get(profiles.length() - 1);
-                                    NSProfile nsProfile = new NSProfile(profile, activeProfile);
-                                    MainApp.setNsProfile(nsProfile);
-                                    log.debug("NSCLIENT profile received: " + nsProfile.log());
-                                    bp.handleNewTreatment(nsProfile, MainApp.instance().getApplicationContext(), isDelta);
-                                }
+                                bp.handleNewTreatment(MainApp.getNsProfile(), MainApp.instance().getApplicationContext(), isDelta);
+                                log.debug("NSCLIENT broadcasting profile" + MainApp.getNsProfile().log());
                             }
+
                             if (data.has("treatments")) {
                                 JSONArray treatments = (JSONArray) data.getJSONArray("treatments");
                                 JSONArray removedTreatments = new JSONArray();

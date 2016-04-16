@@ -28,7 +28,6 @@ public class MainApp extends Application {
     private static NSClient nsClient = null;
 
     public static NSProfile nsProfile;
-    public static String nsActiveProfile = null;
 
     @Override
     public void onCreate() {
@@ -59,6 +58,4 @@ public class MainApp extends Application {
     public static void setNsProfile(NSProfile profile) { nsProfile = profile; }
     public static NSProfile getNsProfile() { return nsProfile; }
 
-    public static void setNsActiveProfile(String activeProfile) { nsActiveProfile = activeProfile; }
-    public static String getNsActiveProfile() { return nsActiveProfile; }
 }
