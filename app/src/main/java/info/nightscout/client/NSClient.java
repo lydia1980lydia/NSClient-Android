@@ -204,6 +204,7 @@ public class NSClient {
         try { nsURL = SP.getString("ns_url", ""); } catch(Exception e) {}
         try { nsAPISecret = SP.getString("ns_api_secret", ""); } catch(Exception e) {}
         try { nsHours = SP.getInt("ns_api_hours", 1); } catch(Exception e) {}
+        try { nsDevice = SP.getString("ns_api_device", ""); } catch(Exception e) {}
     }
 
     private Emitter.Listener onPing = new Emitter.Listener() {
