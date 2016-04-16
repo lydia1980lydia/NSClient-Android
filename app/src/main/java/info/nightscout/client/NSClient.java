@@ -250,6 +250,10 @@ public class NSClient {
                                 }
                                 BroadcastStatus bs = new BroadcastStatus();
                                 bs.handleNewStatus(nsStatus, MainApp.instance().getApplicationContext(), isDelta);
+
+                                if (!status.has("versionNum") || status.getInt("versionNum") < 900) {
+                                    Toast.makeText(MainApp.instance().getApplicationContext(), "Unsupported Nightscout version", Toast.LENGTH_LONG).show();
+                                }
                     /*  Other received data to 2016/02/10
                         {
                           status: 'ok'
@@ -266,6 +270,8 @@ public class NSClient {
                           , activeProfile ..... calculated from treatments or missing
                         }
                      */
+                            } else if (!isDelta){
+                                Toast.makeText(MainApp.instance().getApplicationContext(), "Unsupported Nightscout version", Toast.LENGTH_LONG).show();
                             }
                             if (data.has("profiles")) {
                                 JSONArray profiles = (JSONArray) data.getJSONArray("profiles");
