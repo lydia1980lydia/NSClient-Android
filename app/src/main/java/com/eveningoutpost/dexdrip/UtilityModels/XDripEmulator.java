@@ -150,51 +150,41 @@ public class XDripEmulator {
         Intent intent = new Intent("danaR.action.BG_DATA");
 
         int sizeRecords = latest6bgReadings.size();
-        double deltaAvg30min = 0d;
-        double deltaAvg15min = 0d;
-        double avg30min = 0d;
-        double avg15min = 0d;
+        int minutes = 5;
+        int change;
+        int avg;
 
-        boolean notGood = false;
-
-        if (sizeRecords > 6) {
-            BgReading timeMatchedRecordCurrent = latest6bgReadings.get(sizeRecords - 1);
-            long now = (new Date()).getTime();
+        if (sizeRecords > 3) {
+            BgReading now = latest6bgReadings.get(sizeRecords - 1);
+            BgReading last = latest6bgReadings.get(sizeRecords - 2);
+            BgReading last1 = latest6bgReadings.get(sizeRecords - 2);
+            BgReading last2 = latest6bgReadings.get(sizeRecords - 3);
+            long nowTime = (new Date()).getTime();
             long msec7min = 7l * 60 * 1000;
-            if (now - timeMatchedRecordCurrent.timestamp >msec7min) {
+            if (nowTime - now.timestamp >msec7min) {
                 log.debug("Data too old to send to DanaAps");
                 return;
             }
-            for (int i = sizeRecords - 6; i < sizeRecords; i++) {
-                short glucoseValueBeeingProcessed = (short) latest6bgReadings.get(i).value;
-                //log.debug("DANAAPP" + i + ": " + formatNumber1place.format(glucoseValueBeeingProcessed / 18d));
-                if (glucoseValueBeeingProcessed < 40) {
-                    notGood = true;
-                    log.debug("DANAAPP data not good " + latest6bgReadings.get(i).timestamp);
-                }
-                deltaAvg30min += glucoseValueBeeingProcessed - latest6bgReadings.get(i - 1).value;
-                avg30min += glucoseValueBeeingProcessed;
-                if (i >= sizeRecords - 3) {
-                    avg15min += glucoseValueBeeingProcessed;
-                    deltaAvg15min += glucoseValueBeeingProcessed - latest6bgReadings.get(i - 1).value;
-                }
+            if (last2.value > 30) {
+                minutes = 3 *5;
+                change = (int) (now.value - last2.value);
+            } else if (last1.value > 30) {
+                minutes = 2 * 5;
+                change = (int) (now.value - last1.value);
+            } else if (last.value > 30) {
+                minutes = 5;
+                change = (int) (now.value - last.value);
+            } else {
+                change = 0;
             }
-            deltaAvg30min /= 6d;
-            deltaAvg15min /= 3d;
-            avg30min /= 6d;
-            avg15min /= 3d;
-
-            if (notGood) return;
+            //multiply by 5 to get the same unit as delta, i.e. mg/dL/5m
+            avg = change / minutes *5;
 
             Bundle bundle = new Bundle();
-            bundle.putLong("time", timeMatchedRecordCurrent.timestamp);
-            bundle.putInt("value", (int) timeMatchedRecordCurrent.value);
-            bundle.putInt("delta", (int) (timeMatchedRecordCurrent.value - latest6bgReadings.get(sizeRecords - 2).value));
-            bundle.putDouble("deltaAvg30min", deltaAvg30min);
-            bundle.putDouble("deltaAvg15min", deltaAvg15min);
-            bundle.putDouble("avg30min", avg30min);
-            bundle.putDouble("avg15min", avg15min);
-
+            bundle.putLong("time", now.timestamp);
+            bundle.putInt("value", (int) now.value);
+            bundle.putInt("delta", (int) (now.value - last.value));
+            bundle.putDouble("avgdelta", avg);
             intent.putExtras(bundle);
 
             // Postpone sending because on restart of client multiple BGs are comming and we need to send only last one
@@ -217,13 +207,13 @@ public class XDripEmulator {
             // prepare task for execution in 5 sec
             // cancel waiting task to prevent sending multiple statuses
             if (preparedTimestamp != 0l)
-                if (timeMatchedRecordCurrent.timestamp > preparedTimestamp) {
+                if (now.timestamp > preparedTimestamp) {
                     outgoingIntent.cancel(false);
                     preparedTimestamp = 0l;
                 }
             if (preparedTimestamp == 0l) {
                 Runnable task = new RunnableWithParam(intent, context);
-                preparedTimestamp = timeMatchedRecordCurrent.timestamp;
+                preparedTimestamp = now.timestamp;
                 outgoingIntent = worker.schedule(task, 5, TimeUnit.SECONDS);
             }
         }
