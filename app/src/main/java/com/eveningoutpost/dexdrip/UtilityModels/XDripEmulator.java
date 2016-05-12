@@ -151,8 +151,8 @@ public class XDripEmulator {
 
         int sizeRecords = latest6bgReadings.size();
         int minutes = 5;
-        int change;
-        int avg;
+        double change;
+        double avg;
 
         if (sizeRecords > 3) {
             BgReading now = latest6bgReadings.get(sizeRecords - 1);
@@ -167,13 +167,13 @@ public class XDripEmulator {
             }
             if (last2.value > 30) {
                 minutes = 3 *5;
-                change = (int) (now.value - last2.value);
+                change = now.value - last2.value;
             } else if (last1.value > 30) {
                 minutes = 2 * 5;
-                change = (int) (now.value - last1.value);
+                change = now.value - last1.value;
             } else if (last.value > 30) {
                 minutes = 5;
-                change = (int) (now.value - last.value);
+                change = now.value - last.value;
             } else {
                 change = 0;
             }
