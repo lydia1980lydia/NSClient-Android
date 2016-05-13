@@ -47,6 +47,7 @@ public class BroadcastTreatment {
         bundle.putBoolean("delta", isDelta);
         Intent intent = new Intent(Intents.ACTION_CHANGED_TREATMENT);
         intent.putExtras(bundle);
+        intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
         context.sendBroadcast(intent);
         List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
 
@@ -61,6 +62,7 @@ public class BroadcastTreatment {
         bundle.putBoolean("delta", isDelta);
         Intent intent = new Intent(Intents.ACTION_REMOVED_TREATMENT);
         intent.putExtras(bundle);
+        intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
         context.sendBroadcast(intent);
         List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
 
@@ -75,6 +77,7 @@ public class BroadcastTreatment {
         bundle.putBoolean("delta", isDelta);
         Intent intent = new Intent(Intents.ACTION_REMOVED_TREATMENT);
         intent.putExtras(bundle);
+        intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
         context.sendBroadcast(intent);
         List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
 
