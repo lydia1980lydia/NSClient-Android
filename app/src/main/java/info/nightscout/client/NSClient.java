@@ -336,7 +336,7 @@ public class NSClient {
                                         if (!isCurrent(treatment)) continue;
                                         bt.handleChangedTreatment(jsonTreatment, MainApp.instance().getApplicationContext(), isDelta);
                                     } else if (treatment.getAction().equals("remove")) {
-                                        removedTreatments.put(treatment);
+                                        removedTreatments.put(jsonTreatment);
                                     }
                                 }
                                 if (removedTreatments.length() > 0) {
