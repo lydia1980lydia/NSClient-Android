@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import info.nightscout.client.Config;
 import info.nightscout.client.MainApp;
 import info.nightscout.client.NSClient;
 import info.nightscout.client.acks.NSAddAck;
@@ -134,7 +135,8 @@ public class UploadQueue {
                             log.debug(UploadQueue.status());
                             return;
                         }
-                        log.debug("QUEUE dbAdd processed: " + dbr.data.toString());
+                        if (Config.detailedLog) log.debug("QUEUE dbAdd processed: " + dbr.data.toString());
+                        else log.debug("QUEUE dbAdd processed");
                         iter.remove();
                         log.debug(UploadQueue.status());
                     } else if (dbr.action.equals("dbRemove")) {

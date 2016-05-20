@@ -325,10 +325,6 @@ public class NSClient {
                                     JSONObject jsonTreatment = treatments.getJSONObject(index);
                                     NSTreatment treatment = new NSTreatment(jsonTreatment);
 
-if (treatment.getDoubleOrNull("insulin")!=null) {
-    log.debug("Received from NS: " + isCurrent(treatment) + " " + treatment.getData().toString());
-    log.debug("Received from NS: " + new Date(treatment.getMills()).toString());
-}
                                     // remove from upload queue if Ack is failing
                                     UploadQueue.removeID(jsonTreatment);
                                     if (treatment.getAction() == null) {

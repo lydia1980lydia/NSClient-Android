@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import info.nightscout.client.Config;
 import info.nightscout.client.MainApp;
 import info.nightscout.client.data.NSSgv;
 
@@ -31,7 +32,7 @@ public class xDripReceiver extends BroadcastReceiver {
         SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
         boolean sendToDanaApp = SP.getBoolean("ns_sendtodanaapp", false);
 
-        log.debug("xDripReceiver.onReceive");
+        if (Config.detailedLog) log.debug("xDripReceiver.onReceive");
         Bundle bundle = intent.getExtras();
         if (bundle == null) return;
 
