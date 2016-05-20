@@ -66,7 +66,7 @@ public class NSClient {
     private String nsURL = "";
     private String nsAPISecret = "";
     private String nsDevice = "";
-    private Integer nsHours = 1;
+    private Integer nsHours = 3;
     private boolean acquireWiFiLock = false;
 
     private final Integer timeToWaitForResponseInMs = 30000;
@@ -206,12 +206,16 @@ public class NSClient {
 
     public void readPreferences() {
         SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
-        try { nsEnabled = SP.getBoolean("ns_enable", false); } catch(Exception e) {}
-        try { acquireWiFiLock = SP.getBoolean("ns_android_acquirewifilock", false); } catch(Exception e) {}
-        try { nsURL = SP.getString("ns_url", ""); } catch(Exception e) {}
-        try { nsAPISecret = SP.getString("ns_api_secret", ""); } catch(Exception e) {}
-        try { nsHours = SP.getInt("ns_api_hours", 1); } catch(Exception e) {}
-        try { nsDevice = SP.getString("ns_api_device", ""); } catch(Exception e) {}
+        try {
+            nsEnabled = SP.getBoolean("ns_enable", false);
+            acquireWiFiLock = SP.getBoolean("ns_android_acquirewifilock", false);
+            nsURL = SP.getString("ns_url", "");
+            nsAPISecret = SP.getString("ns_api_secret", "");
+            nsHours = Integer.parseInt(SP.getString("ns_api_hours", "3"));
+            nsDevice = SP.getString("ns_api_device", "");
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private Emitter.Listener onPing = new Emitter.Listener() {
@@ -320,6 +324,11 @@ public class NSClient {
                                 for (Integer index = 0; index < treatments.length(); index++) {
                                     JSONObject jsonTreatment = treatments.getJSONObject(index);
                                     NSTreatment treatment = new NSTreatment(jsonTreatment);
+
+if (treatment.getDoubleOrNull("insulin")!=null) {
+    log.debug("Received from NS: " + isCurrent(treatment) + " " + treatment.getData().toString());
+    log.debug("Received from NS: " + new Date(treatment.getMills()).toString());
+}
                                     // remove from upload queue if Ack is failing
                                     UploadQueue.removeID(jsonTreatment);
                                     if (treatment.getAction() == null) {

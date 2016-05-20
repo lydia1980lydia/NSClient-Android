@@ -29,7 +29,7 @@ public class NSTreatment {
         return ret;
     };
 
-    private Double getDoubleOrNull(String key) {
+    public Double getDoubleOrNull(String key) {
         Double ret = null;
         if (data.has(key)) {
             try {
