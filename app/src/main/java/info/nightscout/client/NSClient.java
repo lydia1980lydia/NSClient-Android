@@ -256,7 +256,8 @@ public class NSClient {
                                 JSONArray profiles = (JSONArray) data.getJSONArray("profiles");
                                 if (profiles.length() > 0) {
                                     JSONObject profile = (JSONObject) profiles.get(profiles.length() - 1);
-                                    NSProfile nsProfile = new NSProfile(profile);
+                                    String activeProfile = MainApp.getNsProfile() == null ? null : MainApp.getNsProfile().getActiveProfile();
+                                    NSProfile nsProfile = new NSProfile(profile, activeProfile);
                                     MainApp.setNsProfile(nsProfile);
                                     broadcastProfile = true;
                                     log.debug("NSCLIENT profile received");
@@ -277,7 +278,7 @@ public class NSClient {
                                 if (MainApp.getNsProfile() != null) {
                                     String oldActiveProfile = MainApp.getNsProfile().getActiveProfile();
                                     String receivedActiveProfile = nsStatus.getActiveProfile();
-                                    MainApp.getNsProfile().setActiveProfileName(receivedActiveProfile);
+                                    MainApp.getNsProfile().setActiveProfile(receivedActiveProfile);
                                     if (receivedActiveProfile != null) {
                                         log.debug("NSCLIENT status activeProfile received: " + receivedActiveProfile);
                                     }
