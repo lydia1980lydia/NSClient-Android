@@ -83,8 +83,10 @@ public class NSProfile {
         JSONObject profile = getDefaultProfile();
         if (profile != null) {
             try {
-                units = profile.getString("units");
-                return units;
+                if (profile.has("units")) {
+                    units = profile.getString("units");
+                    return units;
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }

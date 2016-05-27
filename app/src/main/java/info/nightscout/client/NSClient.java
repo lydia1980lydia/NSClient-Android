@@ -29,6 +29,7 @@ import java.util.Date;
 
 import info.nightscout.client.acks.NSAddAck;
 import info.nightscout.client.acks.NSAuthAck;
+import info.nightscout.client.acks.NSPingAck;
 import info.nightscout.client.acks.NSUpdateAck;
 import info.nightscout.client.broadcasts.BroadcastProfile;
 import info.nightscout.client.broadcasts.BroadcastSgvs;
@@ -71,6 +72,7 @@ public class NSClient {
 
     private final Integer timeToWaitForResponseInMs = 30000;
     private boolean uploading = false;
+    public Date lastReception = new Date();
 
     private String nsAPIhashCode = "";
 
@@ -195,6 +197,7 @@ public class NSClient {
             if (!ack.write_treatment) {
                 Toast.makeText(MainApp.instance().getApplicationContext(), "Write treatment permission not granted", Toast.LENGTH_LONG).show();
             }
+            lastReception = new Date();
         } else {
             log.debug("NSCLIENT Auth timed out "  + mSocket.id());
             isConnected = true;
@@ -230,6 +233,7 @@ public class NSClient {
     private Emitter.Listener onDataUpdate = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
+            lastReception = new Date();
             handler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -596,6 +600,40 @@ public class NSClient {
         uploading = false;
     }
 
+
+    public void doPing() {
+        if (!isConnected) return;
+        log.debug("NSCLIENT Sending Ping");
+        uploading = true;
+        JSONObject message = new JSONObject();
+        try {
+            message.put("mills", new Date().getTime());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        NSPingAck ack = new NSPingAck();
+        mSocket.emit("nsping", message, ack);
+        synchronized(ack) {
+            try {
+                ack.wait(timeToWaitForResponseInMs);
+            } catch (InterruptedException e) {
+            }
+        }
+        if (ack.received) {
+            String connectionStatus = "NSCLIENT Pong received";
+            if (ack.auth_received) {
+                connectionStatus += ": ";
+                if (ack.read) connectionStatus += "R";
+                if (ack.write) connectionStatus += "W";
+                if (ack.write_treatment) connectionStatus += "T";
+            }
+            if (!ack.read) sendAuthMessage(new NSAuthAck());
+            log.debug(connectionStatus);
+        } else {
+            log.debug("NSCLIENT Ping lost");
+        }
+        uploading = false;
+    }
 
     private boolean isCurrent(NSTreatment treatment) {
         long now = (new Date()).getTime();
