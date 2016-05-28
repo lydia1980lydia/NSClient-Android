@@ -134,17 +134,12 @@ public class XDripEmulator {
 
             log.debug("XDRIPEMU BG " + bgReading.valInUnit() + " (" + new SimpleDateFormat("H:mm").format(new Date(bgReading.timestamp)) + ") " + x.size() + " receivers");
 
-            // add new reading CHANGE: now picked up as broadcast
-            // addBgReading(bgReading);
-            // if (sendToDanaApp) sendToBroadcastReceiverToDanaApp(context);
-
-
         } finally {
             wakeLock.release();
         }
     }
 
-    public static void sendToBroadcastReceiverToDanaApp(Context context) {
+    public static void sendToBroadcastReceiverToDanaAps(Context context) {
 
 
         Intent intent = new Intent("danaR.action.BG_DATA");
@@ -162,7 +157,7 @@ public class XDripEmulator {
             long nowTime = (new Date()).getTime();
             long msec7min = 7l * 60 * 1000;
             if (nowTime - now.timestamp >msec7min) {
-                log.debug("Data too old to send to DanaAps");
+                log.debug("Data too old to send to DanaAPS");
                 return;
             }
             if (last2.value > 30) {
@@ -197,7 +192,7 @@ public class XDripEmulator {
                 }
                 public void run(){
                     List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
-                    log.debug("DANAAPP  " + x.size() + " receivers");
+                    log.debug("DANAAPS  " + x.size() + " receivers");
 
                     context.sendBroadcast(intent);
                     preparedTimestamp = 0l;

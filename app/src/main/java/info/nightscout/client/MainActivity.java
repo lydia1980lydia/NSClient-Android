@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (id == R.id.action_ressenddanaapp) {
             XDripEmulator xe = new XDripEmulator();
-            xe.sendToBroadcastReceiverToDanaApp(getApplicationContext());
+            xe.sendToBroadcastReceiverToDanaAps(getApplicationContext());
             return true;
         }
 

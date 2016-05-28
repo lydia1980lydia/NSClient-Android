@@ -11,7 +11,6 @@ import com.eveningoutpost.dexdrip.Models.BgReading;
 import com.eveningoutpost.dexdrip.UtilityModels.Intents;
 import com.eveningoutpost.dexdrip.UtilityModels.XDripEmulator;
 
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +19,6 @@ import java.util.Date;
 
 import info.nightscout.client.Config;
 import info.nightscout.client.MainApp;
-import info.nightscout.client.data.NSSgv;
 
 public class xDripReceiver extends BroadcastReceiver {
     private static Logger log = LoggerFactory.getLogger(xDripReceiver.class);
@@ -50,7 +48,7 @@ public class xDripReceiver extends BroadcastReceiver {
             log.debug("XDRIPREC BG " + bgReading.valInUnit() + " (" + new SimpleDateFormat("H:mm").format(new Date(bgReading.timestamp)) + ")");
 
             emulator.addBgReading(bgReading);
-            emulator.sendToBroadcastReceiverToDanaApp(context);
+            emulator.sendToBroadcastReceiverToDanaAps(context);
         }
     }
 }
