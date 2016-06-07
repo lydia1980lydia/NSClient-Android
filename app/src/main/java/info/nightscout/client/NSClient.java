@@ -402,10 +402,10 @@ public class NSClient {
                                         BgReading bgReading = new BgReading(sgv, actualCal, units);
                                         emulator.handleNewBgReading(bgReading, isFull && index == 0, MainApp.instance().getApplicationContext());
                                     }
-                                    bs.handleNewSgv(sgv, MainApp.instance().getApplicationContext(), isDelta);
                                     // remove from upload queue if Ack is failing
                                     UploadQueue.removeID(jsonSgv);
                                 }
+                                bs.handleNewSgv(sgvs, MainApp.instance().getApplicationContext(), isDelta);
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
