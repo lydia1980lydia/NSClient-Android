@@ -152,8 +152,8 @@ public class XDripEmulator {
         if (sizeRecords > 3) {
             BgReading now = latest6bgReadings.get(sizeRecords - 1);
             BgReading last = latest6bgReadings.get(sizeRecords - 2);
-            BgReading last1 = latest6bgReadings.get(sizeRecords - 2);
-            BgReading last2 = latest6bgReadings.get(sizeRecords - 3);
+            BgReading last1 = latest6bgReadings.get(sizeRecords - 3);
+            BgReading last2 = latest6bgReadings.get(sizeRecords - 4);
             long nowTime = (new Date()).getTime();
             long msec7min = 7l * 60 * 1000;
             if (nowTime - now.timestamp >msec7min) {
