@@ -31,6 +31,9 @@ import info.nightscout.client.acks.NSAddAck;
 import info.nightscout.client.acks.NSAuthAck;
 import info.nightscout.client.acks.NSPingAck;
 import info.nightscout.client.acks.NSUpdateAck;
+import info.nightscout.client.broadcasts.BroadcastCals;
+import info.nightscout.client.broadcasts.BroadcastDeviceStatus;
+import info.nightscout.client.broadcasts.BroadcastMbgs;
 import info.nightscout.client.broadcasts.BroadcastProfile;
 import info.nightscout.client.broadcasts.BroadcastSgvs;
 import info.nightscout.client.broadcasts.BroadcastStatus;
@@ -354,6 +357,7 @@ public class NSClient {
                                 }
                             }
                             if (data.has("devicestatus")) {
+                                BroadcastDeviceStatus bds = new BroadcastDeviceStatus();
                                 JSONArray devicestatuses = (JSONArray) data.getJSONArray("devicestatus");
                                 if (devicestatuses.length() > 0)
                                     log.debug("NSCLIENT received " + devicestatuses.length() + " devicestatuses");
@@ -362,8 +366,10 @@ public class NSClient {
                                     // remove from upload queue if Ack is failing
                                     UploadQueue.removeID(jsonStatus);
                                 }
+                                bds.handleNewDeviceStatus(devicestatuses, MainApp.instance().getApplicationContext(), isDelta);
                             }
                             if (data.has("mbgs")) {
+                                BroadcastMbgs bmbg = new BroadcastMbgs();
                                 JSONArray mbgs = (JSONArray) data.getJSONArray("mbgs");
                                 if (mbgs.length() > 0)
                                     log.debug("NSCLIENT received " + mbgs.length() + " mbgs");
@@ -372,8 +378,10 @@ public class NSClient {
                                     // remove from upload queue if Ack is failing
                                     UploadQueue.removeID(jsonMbg);
                                 }
+                                bmbg.handleNewMbg(mbgs, MainApp.instance().getApplicationContext(), isDelta);
                             }
                             if (data.has("cals")) {
+                                BroadcastCals bc = new BroadcastCals();
                                 JSONArray cals = (JSONArray) data.getJSONArray("cals");
                                 if (cals.length() > 0)
                                     log.debug("NSCLIENT received " + cals.length() + " cals");
@@ -385,6 +393,7 @@ public class NSClient {
                                     // remove from upload queue if Ack is failing
                                     UploadQueue.removeID(cals.optJSONObject(index));
                                 }
+                                bc.handleNewCal(cals, MainApp.instance().getApplicationContext(), isDelta);
                             }
                             if (data.has("sgvs")) {
                                 BroadcastSgvs bs = new BroadcastSgvs();
