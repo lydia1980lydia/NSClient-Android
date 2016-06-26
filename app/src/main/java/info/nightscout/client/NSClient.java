@@ -66,6 +66,9 @@ public class NSClient {
     public boolean forcerestart = false;
     private String connectionStatus = "Not connected";
 
+    public static String nightscoutVersionName = "";
+    public static Integer nightscoutVersionCode = 0;
+
     private boolean nsEnabled = false;
     private String nsURL = "";
     private String nsAPISecret = "";
@@ -87,7 +90,7 @@ public class NSClient {
 
         dataCounter = 0;
 
-        if(handler==null) {
+        if (handler == null) {
             handlerThread = new HandlerThread(NSClient.class.getSimpleName() + "Handler");
             handlerThread.start();
             handler = new Handler(handlerThread.getLooper());
@@ -98,7 +101,8 @@ public class NSClient {
         if (acquireWiFiLock)
             keepWiFiOn(MainApp.instance().getApplicationContext(), true);
 
-        if (nsAPISecret!="") nsAPIhashCode = Hashing.sha1().hashString(nsAPISecret, Charsets.UTF_8).toString();
+        if (nsAPISecret != "")
+            nsAPIhashCode = Hashing.sha1().hashString(nsAPISecret, Charsets.UTF_8).toString();
 
         Intent i = new Intent(MainApp.instance().getApplicationContext(), PreferencesActivity.class);
         mBus.post(new NSStatusEvent(connectionStatus));
@@ -172,7 +176,7 @@ public class NSClient {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        synchronized(ack) {
+        synchronized (ack) {
             try {
                 ack.wait(timeToWaitForResponseInMs);
             } catch (InterruptedException e) {
@@ -184,8 +188,7 @@ public class NSClient {
             isConnected = false;
             connectionStatus = "Auth interrupted";
             mBus.post(new NSStatusEvent(connectionStatus));
-        }
-        else if (ack.received){
+        } else if (ack.received) {
             log.debug("NSCLIENT Authenticated");
             connectionStatus = "Authenticated (";
             if (ack.read) connectionStatus += "R";
@@ -202,7 +205,7 @@ public class NSClient {
             }
             lastReception = new Date();
         } else {
-            log.debug("NSCLIENT Auth timed out "  + mSocket.id());
+            log.debug("NSCLIENT Auth timed out " + mSocket.id());
             isConnected = true;
             connectionStatus = "Auth timed out";
             mBus.post(new NSStatusEvent(connectionStatus));
@@ -219,7 +222,7 @@ public class NSClient {
             nsAPISecret = SP.getString("ns_api_secret", "");
             nsHours = Integer.parseInt(SP.getString("ns_api_hours", "3"));
             nsDevice = SP.getString("ns_api_device", "");
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -275,8 +278,13 @@ public class NSClient {
                                 JSONObject status = data.getJSONObject("status");
                                 NSStatus nsStatus = new NSStatus(status);
 
-                                if (!status.has("versionNum") || status.getInt("versionNum") < 900) {
-                                    Toast.makeText(MainApp.instance().getApplicationContext(), "Unsupported Nightscout version", Toast.LENGTH_LONG).show();
+                                if (!status.has("versionNum")) {
+                                    if (status.getInt("versionNum") < 900) {
+                                        Toast.makeText(MainApp.instance().getApplicationContext(), "Unsupported Nightscout version", Toast.LENGTH_LONG).show();
+                                    }
+                                } else {
+                                    nightscoutVersionName = status.getString("version");
+                                    nightscoutVersionCode = status.getInt("versionNum");
                                 }
 
                                 BroadcastStatus bs = new BroadcastStatus();
@@ -312,12 +320,12 @@ public class NSClient {
                           , activeProfile ..... calculated from treatments or missing
                         }
                      */
-                            } else if (!isDelta){
+                            } else if (!isDelta) {
                                 Toast.makeText(MainApp.instance().getApplicationContext(), "Unsupported Nightscout version", Toast.LENGTH_LONG).show();
                             }
 
                             // If new profile received or change detected broadcast it
-                            if (broadcastProfile && MainApp.getNsProfile()!= null) {
+                            if (broadcastProfile && MainApp.getNsProfile() != null) {
                                 BroadcastProfile bp = new BroadcastProfile();
                                 bp.handleNewTreatment(MainApp.getNsProfile(), MainApp.instance().getApplicationContext(), isDelta);
                                 log.debug("NSCLIENT broadcasting profile" + MainApp.getNsProfile().log());
@@ -442,7 +450,7 @@ public class NSClient {
             message.put("_id", dbr._id);
             message.put("data", dbr.data);
             mSocket.emit("dbUpdate", message, ack);
-            synchronized(ack) {
+            synchronized (ack) {
                 try {
                     ack.wait(timeToWaitForResponseInMs);
                 } catch (InterruptedException e) {
@@ -488,7 +496,7 @@ public class NSClient {
             message.put("_id", dbr._id);
             message.put("data", dbr.data);
             mSocket.emit("dbUpdateUnset", message, ack);
-            synchronized(ack) {
+            synchronized (ack) {
                 try {
                     ack.wait(timeToWaitForResponseInMs);
                 } catch (InterruptedException e) {
@@ -533,7 +541,7 @@ public class NSClient {
             message.put("collection", dbr.collection);
             message.put("_id", dbr._id);
             mSocket.emit("dbRemove", message, ack);
-            synchronized(ack) {
+            synchronized (ack) {
                 try {
                     ack.wait(timeToWaitForResponseInMs);
                 } catch (InterruptedException e) {
@@ -577,7 +585,7 @@ public class NSClient {
             message.put("collection", dbr.collection);
             message.put("data", dbr.data);
             mSocket.emit("dbAdd", message, ack);
-            synchronized(ack) {
+            synchronized (ack) {
                 try {
                     ack.wait(timeToWaitForResponseInMs);
                 } catch (InterruptedException e) {
@@ -622,7 +630,7 @@ public class NSClient {
         }
         NSPingAck ack = new NSPingAck();
         mSocket.emit("nsping", message, ack);
-        synchronized(ack) {
+        synchronized (ack) {
             try {
                 ack.wait(timeToWaitForResponseInMs);
             } catch (InterruptedException e) {
