@@ -17,7 +17,7 @@ NS Client
  
  - Any other features there?
  
- NS Client can emulate xDrip app if you don't have physical device available. It supports xDrip extension for DanaApp too (OpenAPS implementation for DanaR pump)
+ NS Client can emulate xDrip app if you don't have physical device available. It supports xDrip extension for DanaAps too (OpenAPS implementation for DanaR pump)
  
  - Some examples?
  
@@ -29,4 +29,4 @@ NS Client
  
  - Do I need care about success/failure of upload?
  
- No. NS client takas care about it. Undelivered records are queued and delivered when client reconnects to server.
+ No. NS client takes care about it. Undelivered records are queued and delivered when client reconnects to server.
