@@ -334,6 +334,8 @@ public class NSClient {
                             if (data.has("treatments")) {
                                 JSONArray treatments = (JSONArray) data.getJSONArray("treatments");
                                 JSONArray removedTreatments = new JSONArray();
+                                JSONArray updatedTreatments = new JSONArray();
+                                JSONArray addedTreatments = new JSONArray();
                                 BroadcastTreatment bt = new BroadcastTreatment();
                                 if (treatments.length() > 0)
                                     log.debug("NSCLIENT received " + treatments.length() + " treatments");
@@ -352,16 +354,22 @@ public class NSClient {
                                         }
                                         // ********* TEST CODE END ********
                                         if (!isCurrent(treatment)) continue;
-                                        bt.handleNewTreatment(treatment, MainApp.instance().getApplicationContext(), isDelta);
+                                        addedTreatments.put(jsonTreatment);
                                     } else if (treatment.getAction().equals("update")) {
                                         if (!isCurrent(treatment)) continue;
-                                        bt.handleChangedTreatment(jsonTreatment, MainApp.instance().getApplicationContext(), isDelta);
+                                        updatedTreatments.put(jsonTreatment);
                                     } else if (treatment.getAction().equals("remove")) {
                                         removedTreatments.put(jsonTreatment);
                                     }
                                 }
                                 if (removedTreatments.length() > 0) {
                                     bt.handleRemovedTreatment(removedTreatments, MainApp.instance().getApplicationContext(), isDelta);
+                                }
+                                if (updatedTreatments.length() > 0) {
+                                    bt.handleChangedTreatment(updatedTreatments, MainApp.instance().getApplicationContext(), isDelta);
+                                }
+                                if (updatedTreatments.length() > 0) {
+                                    bt.handleNewTreatment(addedTreatments, MainApp.instance().getApplicationContext(), isDelta);
                                 }
                             }
                             if (data.has("devicestatus")) {

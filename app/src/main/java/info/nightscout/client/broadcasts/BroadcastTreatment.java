@@ -41,6 +41,19 @@ public class BroadcastTreatment {
         log.debug("TREAT " + treatment.getEventType() + " " + x.size() + " receivers");
     }
 
+    public void handleNewTreatment(JSONArray treatments, Context context, boolean isDelta) {
+        Bundle bundle = new Bundle();
+        bundle.putString("treatments", treatments.toString());
+        bundle.putBoolean("delta", isDelta);
+        Intent intent = new Intent(Intents.ACTION_NEW_TREATMENT);
+        intent.putExtras(bundle);
+        intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+        context.sendBroadcast(intent);
+        List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
+
+        log.debug("TREAT_ADD" + treatments.length() + " " + x.size() + " receivers");
+    }
+
     public void handleChangedTreatment(JSONObject treatment, Context context, boolean isDelta) {
         Bundle bundle = new Bundle();
         bundle.putString("treatment", treatment.toString());
@@ -54,6 +67,19 @@ public class BroadcastTreatment {
         try {
             log.debug("TREAT_CHANGE " + treatment.getString("_id") + " " + x.size() + " receivers");
         } catch (JSONException e) {}
+    }
+
+   public void handleChangedTreatment(JSONArray treatments, Context context, boolean isDelta) {
+        Bundle bundle = new Bundle();
+        bundle.putString("treatments", treatments.toString());
+        bundle.putBoolean("delta", isDelta);
+        Intent intent = new Intent(Intents.ACTION_CHANGED_TREATMENT);
+        intent.putExtras(bundle);
+        intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+        context.sendBroadcast(intent);
+        List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
+
+        log.debug("TREAT_CHANGE " + treatments.length() + " " + x.size() + " receivers");
     }
 
     public void handleRemovedTreatment(JSONObject treatment, Context context, boolean isDelta) {
