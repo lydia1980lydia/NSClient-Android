@@ -19,7 +19,6 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:process=":mainProcess"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity">
@@ -81,9 +80,7 @@
             </intent-filter>
         </receiver>
         <!-- Receiver to keep alive NS service -->
-        <receiver
-            android:name=".receivers.ReceiverKeepAlive"
-            android:process=":mainProcess">
+        <receiver android:name=".receivers.ReceiverKeepAlive">
             <intent-filter>
                 <action android:name="info.nightscout.client.ReceiverKeepAlive.action.PING" />
             </intent-filter>
@@ -100,8 +97,7 @@
         <service
             android:name=".services.ServiceNS"
             android:enabled="true"
-            android:exported="false"
-            android:process=":mainProcess" />
+            android:exported="false" />
 
         <meta-data
             android:name="io.fabric.ApiKey"

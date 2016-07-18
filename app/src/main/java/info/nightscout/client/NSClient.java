@@ -368,7 +368,7 @@ public class NSClient {
                                 if (updatedTreatments.length() > 0) {
                                     bt.handleChangedTreatment(updatedTreatments, MainApp.instance().getApplicationContext(), isDelta);
                                 }
-                                if (updatedTreatments.length() > 0) {
+                                if (addedTreatments.length() > 0) {
                                     bt.handleNewTreatment(addedTreatments, MainApp.instance().getApplicationContext(), isDelta);
                                 }
                             }

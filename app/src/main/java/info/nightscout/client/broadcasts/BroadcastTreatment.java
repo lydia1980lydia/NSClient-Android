@@ -38,7 +38,7 @@ public class BroadcastTreatment {
         context.sendBroadcast(intent);
         List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
 
-        log.debug("TREAT " + treatment.getEventType() + " " + x.size() + " receivers");
+        log.debug("TREAT_ADD " + treatment.getEventType() + " " + x.size() + " receivers");
     }
 
     public void handleNewTreatment(JSONArray treatments, Context context, boolean isDelta) {
@@ -51,7 +51,7 @@ public class BroadcastTreatment {
         context.sendBroadcast(intent);
         List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
 
-        log.debug("TREAT_ADD" + treatments.length() + " " + x.size() + " receivers");
+        log.debug("TREAT_ADD " + treatments.length() + " " + x.size() + " receivers");
     }
 
     public void handleChangedTreatment(JSONObject treatment, Context context, boolean isDelta) {
