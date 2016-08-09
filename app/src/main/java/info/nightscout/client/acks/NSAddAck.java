@@ -1,13 +1,11 @@
 package info.nightscout.client.acks;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import info.nightscout.client.MainApp;
-import info.nightscout.client.events.RestartEvent;
 import io.socket.client.Ack;
 
 /**

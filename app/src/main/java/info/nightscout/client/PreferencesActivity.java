@@ -16,8 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import info.nightscout.client.R;
-import info.nightscout.client.events.RestartEvent;
+import info.nightscout.client.events.EventRestart;
 
 public class PreferencesActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static Logger log = LoggerFactory.getLogger(PreferencesActivity.class);
@@ -36,7 +35,7 @@ public class PreferencesActivity extends PreferenceActivity implements SharedPre
         Runnable task = new Runnable() {
             @Override
             public void run() {
-                MainApp.bus().post(new RestartEvent());
+                MainApp.bus().post(new EventRestart());
             }
         };
         worker.schedule(task, 3, TimeUnit.SECONDS);

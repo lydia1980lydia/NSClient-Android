@@ -1,19 +1,24 @@
 package info.nightscout.client.receivers;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.support.v4.content.WakefulBroadcastReceiver;
 
 import info.nightscout.client.MainApp;
-import info.nightscout.client.data.UploadQueue;
-import info.nightscout.client.events.RestartEvent;
+import info.nightscout.client.events.EventRestart;
+import info.nightscout.client.services.ServiceNS;
 
-public class RestartReceiver extends BroadcastReceiver {
+public class RestartReceiver extends WakefulBroadcastReceiver {
     public RestartReceiver() {
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        MainApp.bus().post(new RestartEvent());
+        startWakefulService(context, new Intent(context, ServiceNS.class)
+                .setAction(intent.getAction())
+                .putExtras(intent));
+
+        MainApp.bus().post(new EventRestart());
+        completeWakefulIntent(intent);
     }
 }

@@ -15,8 +15,6 @@ import info.nightscout.client.NSClient;
 import info.nightscout.client.acks.NSAddAck;
 import info.nightscout.client.acks.NSUpdateAck;
 import info.nightscout.client.broadcasts.BroadcastQueueStatus;
-import info.nightscout.client.broadcasts.BroadcastStatus;
-import info.nightscout.client.events.RestartEvent;
 
 /**
  * Created by mike on 21.02.2016.

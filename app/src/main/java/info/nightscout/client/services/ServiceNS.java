@@ -18,14 +18,14 @@ import org.slf4j.LoggerFactory;
 
 import info.nightscout.client.MainApp;
 import info.nightscout.client.NSClient;
-import info.nightscout.client.data.UploadQueue;
-import info.nightscout.client.events.RestartEvent;
+import info.nightscout.client.events.EventAppExit;
+import info.nightscout.client.events.EventRestart;
 
 public class ServiceNS extends Service {
     private static Logger log = LoggerFactory.getLogger(ServiceNS.class);
 
-    Handler mHandler;
-    private HandlerThread mHandlerThread;
+    private static Handler mHandler;
+    private static HandlerThread mHandlerThread;
 
     private Notification mNotification;
 
@@ -92,34 +92,9 @@ public class ServiceNS extends Service {
         mNotificationManager.notify(129, mNotification);
     }
 
-    /*
     @Subscribe
-    public void onStatusEvent(final ConnectionStatusEvent c) {
-        String connectionText = "Connecting ";
-        if(c.sConnecting) {
-            connectionText = "Connecting ";
-        } else {
-            if (c.sConnected) {
-                connectionText = "Connected";
-            } else {
-                connectionText = "Disconnected";
-            }
-        }
-//        mNotification.tickerText = connectionText;
-//        mNotification.when = System.currentTimeMillis();;
-
-        mNotificationCompatBuilder.setWhen(System.currentTimeMillis())
-//                .setTicker(connectionText)
-                .setContentText(connectionText);
-
-        mNotification = mNotificationCompatBuilder.build();
-        nortifManagerNotify();
-    }
-
-    @Subscribe
-    public void onStopEvent(StopEvent event) {
-        log.debug("onStopEvent received");
-        mDanaConnection.stop();
+    public void onStopEvent(EventAppExit event) {
+        log.debug("EventAppExit received");
         if (mNSClient != null) {
             mNSClient.destroy();
         }
@@ -128,7 +103,6 @@ public class ServiceNS extends Service {
         stopSelf();
         log.debug("onStopEvent finished");
     }
-*/
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -151,7 +125,7 @@ public class ServiceNS extends Service {
     }
 
     @Subscribe
-    public void onStatusEvent(final RestartEvent e) {
+    public void onStatusEvent(final EventRestart e) {
         if (restartingService) {
             log.debug("Restarting of WS Client already in progress");
             return;

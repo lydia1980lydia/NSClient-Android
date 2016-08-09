@@ -35,7 +35,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
 import info.nightscout.client.broadcasts.Intents;
 import info.nightscout.client.data.UploadQueue;
-import info.nightscout.client.events.RestartEvent;
+import info.nightscout.client.events.EventRestart;
 import info.nightscout.client.services.ServiceNS;
 import info.nightscout.client.tests.TestReceiveID;
 import info.nightscout.client.utils.DateUtil;
@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
                 log.debug("ALARMMAN setup");
             }
         });
-        onStatusEvent(new RestartEvent());
+        onStatusEvent(new EventRestart());
 
         boolean autoscrollEnabled = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("nsAutoScroll", true);
         switchAutoscroll.setChecked(autoscrollEnabled);
@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (id == R.id.action_restartservices) {
-            MainApp.bus().post(new RestartEvent());
+            MainApp.bus().post(new EventRestart());
             return true;
         }
 
@@ -271,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Subscribe
-    public void onStatusEvent(final RestartEvent e) {
+    public void onStatusEvent(final EventRestart e) {
         SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
         String web = SP.getString("ns_url", "");
         TextView viewWeb = ((TextView) findViewById(R.id.nsWeb));

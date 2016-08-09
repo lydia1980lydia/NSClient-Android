@@ -12,7 +12,7 @@ import java.util.Date;
 import info.nightscout.client.Config;
 import info.nightscout.client.MainApp;
 import info.nightscout.client.NSClient;
-import info.nightscout.client.events.RestartEvent;
+import info.nightscout.client.events.EventRestart;
 import info.nightscout.client.services.ServiceNS;
 
 public class ReceiverKeepAlive extends WakefulBroadcastReceiver {
@@ -21,9 +21,7 @@ public class ReceiverKeepAlive extends WakefulBroadcastReceiver {
     @Override
 	public void onReceive(Context context, Intent intent) {
 
-        //Intent intent = new Intent(context, ServiceNS.class);
-        //context.startService(intent);
-        startWakefulService(context, new Intent(context, ServiceNS.class)
+         startWakefulService(context, new Intent(context, ServiceNS.class)
                 .setAction(intent.getAction())
                 .putExtras(intent));
         //log.debug("KEEPALIVE started ServiceNS " + intent);
@@ -39,10 +37,10 @@ public class ReceiverKeepAlive extends WakefulBroadcastReceiver {
             }
 
             if (nsClient.forcerestart) {
-                MainApp.bus().post(new RestartEvent());
-                return;
+                MainApp.bus().post(new EventRestart());
             }
         }
+        completeWakefulIntent(intent);
     }
 
 }

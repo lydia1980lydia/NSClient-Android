@@ -52,6 +52,8 @@ import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
 public class NSClient {
+    private static Logger log = LoggerFactory.getLogger(NSClient.class);
+
     private static Integer dataCounter = 0;
 
     static public Handler handler;
@@ -60,7 +62,6 @@ public class NSClient {
     public static UploadQueue uploadQueue = new UploadQueue();
 
     private Bus mBus;
-    private static Logger log = LoggerFactory.getLogger(NSClient.class);
     public Socket mSocket;
     public boolean isConnected = false;
     public boolean forcerestart = false;
