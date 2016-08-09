@@ -376,14 +376,16 @@ public class NSClient {
                             if (data.has("devicestatus")) {
                                 BroadcastDeviceStatus bds = new BroadcastDeviceStatus();
                                 JSONArray devicestatuses = (JSONArray) data.getJSONArray("devicestatus");
-                                if (devicestatuses.length() > 0)
+                                if (devicestatuses.length() > 0) {
                                     log.debug("NSCLIENT received " + devicestatuses.length() + " devicestatuses");
-                                for (Integer index = 0; index < devicestatuses.length(); index++) {
-                                    JSONObject jsonStatus = devicestatuses.getJSONObject(index);
-                                    // remove from upload queue if Ack is failing
-                                    UploadQueue.removeID(jsonStatus);
+                                    for (Integer index = 0; index < devicestatuses.length(); index++) {
+                                        JSONObject jsonStatus = devicestatuses.getJSONObject(index);
+                                        // remove from upload queue if Ack is failing
+                                        UploadQueue.removeID(jsonStatus);
+                                    }
+                                    // send only last record
+                                    bds.handleNewDeviceStatus(devicestatuses.getJSONObject(devicestatuses.length()-1), MainApp.instance().getApplicationContext(), isDelta);
                                 }
-                                bds.handleNewDeviceStatus(devicestatuses, MainApp.instance().getApplicationContext(), isDelta);
                             }
                             if (data.has("mbgs")) {
                                 BroadcastMbgs bmbg = new BroadcastMbgs();

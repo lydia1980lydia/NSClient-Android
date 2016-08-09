@@ -20,6 +20,18 @@ import info.nightscout.client.data.NSSgv;
 public class BroadcastDeviceStatus {
     private static Logger log = LoggerFactory.getLogger(BroadcastDeviceStatus.class);
 
+    public void handleNewDeviceStatus(JSONObject status, Context context, boolean isDelta) {
+        Bundle bundle = new Bundle();
+        bundle.putString("devicestatuse", status.toString());
+        bundle.putBoolean("delta", isDelta);
+        Intent intent = new Intent(Intents.ACTION_NEW_DEVICESTATUS);
+        intent.putExtras(bundle);
+        intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+        context.sendBroadcast(intent);
+        List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
+
+        log.debug("DEVICESTATUS " + x.size() + " receivers");
+    }
     public void handleNewDeviceStatus(JSONArray statuses, Context context, boolean isDelta) {
         Bundle bundle = new Bundle();
         bundle.putString("devicestatuses", statuses.toString());
