@@ -70,6 +70,9 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setIcon(R.mipmap.ic_launcher);
+
         if(handler==null) {
             handlerThread = new HandlerThread(MainActivity.class.getSimpleName() + "Handler");
             handlerThread.start();
@@ -91,16 +94,21 @@ public class MainActivity extends AppCompatActivity {
         logger.setLevel(Level.DEBUG);
         logger.setAdditive(true);
 
-        startService(new Intent(getApplicationContext(), ServiceNS.class));
-        registerBus();
-        handler.post(new Runnable() {
+        new Thread() {
             @Override
             public void run() {
-                setupAlarmManager();
-                log.debug("ALARMMAN setup");
+                startService(new Intent(getApplicationContext(), ServiceNS.class));
+                registerBus();
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        setupAlarmManager();
+                        log.debug("ALARMMAN setup");
+                    }
+                });
+                onStatusEvent(new EventRestart());
             }
-        });
-        onStatusEvent(new EventRestart());
+        }.start();
 
         boolean autoscrollEnabled = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("nsAutoScroll", true);
         switchAutoscroll.setChecked(autoscrollEnabled);

@@ -24,6 +24,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.Date;
 
@@ -97,54 +98,77 @@ public class NSClient {
             handler = new Handler(handlerThread.getLooper());
         }
 
-        readPreferences();
+        new Thread() {
+            @Override
+            public void run() {
+                final PowerManager.WakeLock wl = MainApp.getWakeLock("NSClient", 60000);
 
-        if (acquireWiFiLock)
-            keepWiFiOn(MainApp.instance().getApplicationContext(), true);
+                readPreferences();
 
-        if (nsAPISecret != "")
-            nsAPIhashCode = Hashing.sha1().hashString(nsAPISecret, Charsets.UTF_8).toString();
+                if (acquireWiFiLock)
+                    keepWiFiOn(MainApp.instance().getApplicationContext(), true);
 
-        Intent i = new Intent(MainApp.instance().getApplicationContext(), PreferencesActivity.class);
-        mBus.post(new NSStatusEvent(connectionStatus));
-        if (!nsEnabled) {
-            log.debug("NSCLIENT disabled");
-            connectionStatus = "Disabled";
-            mBus.post(new NSStatusEvent(connectionStatus));
-            Toast.makeText(MainApp.instance().getApplicationContext(), "NS connection disabled", Toast.LENGTH_LONG).show();
-            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            MainApp.instance().getApplicationContext().startActivity(i);
-        } else if (nsURL != "") {
-            try {
-                connectionStatus = "Connecting ...";
+                if (nsAPISecret != "")
+                    nsAPIhashCode = Hashing.sha1().hashString(nsAPISecret, Charsets.UTF_8).toString();
+
+                Intent i = new Intent(MainApp.instance().getApplicationContext(), PreferencesActivity.class);
                 mBus.post(new NSStatusEvent(connectionStatus));
-                IO.Options opt = new IO.Options();
-                opt.forceNew = true;
-                mSocket = IO.socket(nsURL, opt);
-                log.debug("NSCLIENT connect");
-                mSocket.connect();
-                mSocket.on("dataUpdate", onDataUpdate);
-                mSocket.on("ping", onPing);
-                // resend auth on reconnect is needed on server restart
-                //mSocket.on("reconnect", resendAuth);
-                sendAuthMessage(new NSAuthAck());
-                log.debug("NSCLIENT start");
-            } catch (URISyntaxException e) {
-                log.debug("NSCLIENT Wrong URL syntax");
-                connectionStatus = "Wrong URL syntax";
-                mBus.post(new NSStatusEvent(connectionStatus));
-                Toast.makeText(MainApp.instance().getApplicationContext(), "Wrong URL syntax", Toast.LENGTH_LONG).show();
-                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                MainApp.instance().getApplicationContext().startActivity(i);
+                if (!nsEnabled) {
+                    log.debug("NSCLIENT disabled");
+                    connectionStatus = "Disabled";
+                    mBus.post(new NSStatusEvent(connectionStatus));
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainApp.instance().getApplicationContext(), "NS connection disabled", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    MainApp.instance().getApplicationContext().startActivity(i);
+                } else if (!nsURL.equals("")) {
+                    try {
+                        connectionStatus = "Connecting ...";
+                        mBus.post(new NSStatusEvent(connectionStatus));
+                        IO.Options opt = new IO.Options();
+                        opt.forceNew = true;
+                        mSocket = IO.socket(nsURL, opt);
+                        log.debug("NSCLIENT connect");
+                        mSocket.connect();
+                        mSocket.on("dataUpdate", onDataUpdate);
+                        mSocket.on("ping", onPing);
+                        // resend auth on reconnect is needed on server restart
+                        //mSocket.on("reconnect", resendAuth);
+                        sendAuthMessage(new NSAuthAck());
+                        log.debug("NSCLIENT start");
+                    } catch (URISyntaxException | RuntimeException  e) {
+                        log.debug("NSCLIENT Wrong URL syntax");
+                        connectionStatus = "Wrong URL syntax";
+                        mBus.post(new NSStatusEvent(connectionStatus));
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(MainApp.instance().getApplicationContext(), "Wrong URL syntax", Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        MainApp.instance().getApplicationContext().startActivity(i);
+                    }
+                } else {
+                    log.debug("NSCLIENT No NS URL specified");
+                    connectionStatus = "Disabled";
+                    mBus.post(new NSStatusEvent(connectionStatus));
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainApp.instance().getApplicationContext(), "No NS URL specified", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    MainApp.instance().getApplicationContext().startActivity(i);
+                }
+                MainApp.releaseWakeLock(wl);
             }
-        } else {
-            log.debug("NSCLIENT No NS URL specified");
-            connectionStatus = "Disabled";
-            mBus.post(new NSStatusEvent(connectionStatus));
-            Toast.makeText(MainApp.instance().getApplicationContext(), "No NS URL specified", Toast.LENGTH_LONG).show();
-            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            MainApp.instance().getApplicationContext().startActivity(i);
-        }
+        }.start();
     }
 
     public void destroy() {
@@ -199,11 +223,19 @@ public class NSClient {
             isConnected = true;
             mBus.post(new NSStatusEvent(connectionStatus));
             if (!ack.write) {
-                Toast.makeText(MainApp.instance().getApplicationContext(), "Write permission not granted", Toast.LENGTH_LONG).show();
-            }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainApp.instance().getApplicationContext(), "Write permission not granted", Toast.LENGTH_LONG).show();
+                    }});
+                    }
             if (!ack.write_treatment) {
-                Toast.makeText(MainApp.instance().getApplicationContext(), "Write treatment permission not granted", Toast.LENGTH_LONG).show();
-            }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainApp.instance().getApplicationContext(), "Write treatment permission not granted", Toast.LENGTH_LONG).show();
+                    }});
+                    }
             lastReception = new Date();
         } else {
             log.debug("NSCLIENT Auth timed out " + mSocket.id());
@@ -281,8 +313,12 @@ public class NSClient {
 
                                 if (!status.has("versionNum")) {
                                     if (status.getInt("versionNum") < 900) {
-                                        Toast.makeText(MainApp.instance().getApplicationContext(), "Unsupported Nightscout version", Toast.LENGTH_LONG).show();
-                                    }
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Toast.makeText(MainApp.instance().getApplicationContext(), "Unsupported Nightscout version", Toast.LENGTH_LONG).show();
+                                            }});
+                                            }
                                 } else {
                                     nightscoutVersionName = status.getString("version");
                                     nightscoutVersionCode = status.getInt("versionNum");
@@ -322,8 +358,12 @@ public class NSClient {
                         }
                      */
                             } else if (!isDelta) {
-                                Toast.makeText(MainApp.instance().getApplicationContext(), "Unsupported Nightscout version", Toast.LENGTH_LONG).show();
-                            }
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(MainApp.instance().getApplicationContext(), "Unsupported Nightscout version", Toast.LENGTH_LONG).show();
+                                    }});
+                                    }
 
                             // If new profile received or change detected broadcast it
                             if (broadcastProfile && MainApp.getNsProfile() != null) {
@@ -447,6 +487,12 @@ public class NSClient {
             });
         }
     };
+
+    private static boolean runOnUiThread(Runnable theRunnable)
+    {
+        final Handler mainHandler = new Handler(MainApp.instance().getMainLooper());
+        return mainHandler.post(theRunnable);
+    }
 
     public void dbUpdate(DbRequest dbr, NSUpdateAck ack) {
         try {
