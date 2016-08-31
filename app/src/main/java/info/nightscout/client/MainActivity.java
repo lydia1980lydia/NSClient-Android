@@ -98,21 +98,16 @@ public class MainActivity extends AppCompatActivity {
         logger.setLevel(Level.DEBUG);
         logger.setAdditive(true);
 
-        new Thread() {
+        handler.post(new Runnable() {
             @Override
             public void run() {
                 startService(new Intent(getApplicationContext(), ServiceNS.class));
                 registerBus();
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        setupAlarmManager();
-                        log.debug("ALARMMAN setup");
-                    }
-                });
+                setupAlarmManager();
+                log.debug("ALARMMAN setup");
                 onStatusEvent(new EventRestart());
             }
-        }.start();
+        });
 
         boolean autoscrollEnabled = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("nsAutoScroll", true);
         switchAutoscroll.setChecked(autoscrollEnabled);
