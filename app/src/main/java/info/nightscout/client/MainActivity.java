@@ -70,8 +70,12 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
-        getSupportActionBar().setIcon(R.mipmap.ic_launcher);
+        try {
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+            getSupportActionBar().setIcon(R.mipmap.ic_launcher);
+        } catch (NullPointerException e) {
+            // no action
+        }
 
         if(handler==null) {
             handlerThread = new HandlerThread(MainActivity.class.getSimpleName() + "Handler");
@@ -280,11 +284,15 @@ public class MainActivity extends AppCompatActivity {
 
     @Subscribe
     public void onStatusEvent(final EventRestart e) {
-        SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
-        String web = SP.getString("ns_url", "");
-        TextView viewWeb = ((TextView) findViewById(R.id.nsWeb));
-        viewWeb.setText( Html.fromHtml("<a href=" + web + ">" + web + "</a>"));
-        viewWeb.setMovementMethod(LinkMovementMethod.getInstance());
+        final SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
+        final String web = SP.getString("ns_url", "");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                TextView viewWeb = ((TextView) findViewById(R.id.nsWeb));
+                viewWeb.setText(Html.fromHtml("<a href=" + web + ">" + web + "</a>"));
+                viewWeb.setMovementMethod(LinkMovementMethod.getInstance());
+            }});
     }
 
     private boolean haveNetworkConnection() {

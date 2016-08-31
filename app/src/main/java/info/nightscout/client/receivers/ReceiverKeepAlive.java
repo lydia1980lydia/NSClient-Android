@@ -2,6 +2,7 @@ package info.nightscout.client.receivers;
 
 import android.content.Context;
 import android.content.Intent;
+import android.preference.PreferenceManager;
 import android.support.v4.content.WakefulBroadcastReceiver;
 
 import org.slf4j.Logger;
@@ -37,8 +38,11 @@ public class ReceiverKeepAlive extends WakefulBroadcastReceiver {
                     if (Config.detailedLog)
                         log.debug("KEEPALIVE last reception " + nsClient.lastReception.toString());
                     if (new Date().getTime() > nsClient.lastReception.getTime() + thirtyMinutesInMs) {
-                        log.debug("KEEPALIVE no reception for 30 min - force restart");
-                        MainApp.bus().post(new EventRestart());
+                        if (PreferenceManager.getDefaultSharedPreferences(context).getBoolean("ns_enable", false))
+                        {
+                            log.debug("KEEPALIVE no reception for 30 min - force restart");
+                            MainApp.bus().post(new EventRestart());
+                        }
                     } else if (new Date().getTime() > nsClient.lastReception.getTime() + tenMinutesInMs) {
                         log.debug("KEEPALIVE no reception for 10 min");
                         nsClient.doPing();
