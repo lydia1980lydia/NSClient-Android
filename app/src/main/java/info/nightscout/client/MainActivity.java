@@ -70,6 +70,13 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        try {
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+            getSupportActionBar().setIcon(R.mipmap.ic_launcher);
+        } catch (NullPointerException e) {
+            // no action
+        }
+
         if(handler==null) {
             handlerThread = new HandlerThread(MainActivity.class.getSimpleName() + "Handler");
             handlerThread.start();
@@ -91,16 +98,16 @@ public class MainActivity extends AppCompatActivity {
         logger.setLevel(Level.DEBUG);
         logger.setAdditive(true);
 
-        startService(new Intent(getApplicationContext(), ServiceNS.class));
-        registerBus();
         handler.post(new Runnable() {
             @Override
             public void run() {
+                startService(new Intent(getApplicationContext(), ServiceNS.class));
+                registerBus();
                 setupAlarmManager();
                 log.debug("ALARMMAN setup");
+                onStatusEvent(new EventRestart());
             }
         });
-        onStatusEvent(new EventRestart());
 
         boolean autoscrollEnabled = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("nsAutoScroll", true);
         switchAutoscroll.setChecked(autoscrollEnabled);
@@ -272,11 +279,15 @@ public class MainActivity extends AppCompatActivity {
 
     @Subscribe
     public void onStatusEvent(final EventRestart e) {
-        SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
-        String web = SP.getString("ns_url", "");
-        TextView viewWeb = ((TextView) findViewById(R.id.nsWeb));
-        viewWeb.setText( Html.fromHtml("<a href=" + web + ">" + web + "</a>"));
-        viewWeb.setMovementMethod(LinkMovementMethod.getInstance());
+        final SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
+        final String web = SP.getString("ns_url", "");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                TextView viewWeb = ((TextView) findViewById(R.id.nsWeb));
+                viewWeb.setText(Html.fromHtml("<a href=" + web + ">" + web + "</a>"));
+                viewWeb.setMovementMethod(LinkMovementMethod.getInstance());
+            }});
     }
 
     private boolean haveNetworkConnection() {

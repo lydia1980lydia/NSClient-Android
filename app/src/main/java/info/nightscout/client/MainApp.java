@@ -1,6 +1,8 @@
 package info.nightscout.client;
 
 import android.app.Application;
+import android.content.Context;
+import android.os.PowerManager;
 import android.preference.PreferenceManager;
 
 import com.crashlytics.android.Crashlytics;
@@ -57,5 +59,17 @@ public class MainApp extends Application {
 
     public static void setNsProfile(NSProfile profile) { nsProfile = profile; }
     public static NSProfile getNsProfile() { return nsProfile; }
+
+    public static PowerManager.WakeLock getWakeLock(final String name, int millis) {
+        final PowerManager pm = (PowerManager) instance().getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, name);
+        wl.acquire(millis);
+        return wl;
+    }
+
+    public static void releaseWakeLock(PowerManager.WakeLock wl) {
+        if (wl.isHeld()) wl.release();
+    }
+
 
 }

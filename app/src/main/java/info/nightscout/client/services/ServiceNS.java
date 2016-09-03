@@ -125,7 +125,7 @@ public class ServiceNS extends Service {
     }
 
     @Subscribe
-    public void onStatusEvent(final EventRestart e) {
+    public synchronized void onStatusEvent(final EventRestart e) {
         if (restartingService) {
             log.debug("Restarting of WS Client already in progress");
             return;
