@@ -22,7 +22,7 @@ public class BroadcastDeviceStatus {
 
     public void handleNewDeviceStatus(JSONObject status, Context context, boolean isDelta) {
         Bundle bundle = new Bundle();
-        bundle.putString("devicestatuse", status.toString());
+        bundle.putString("devicestatus", status.toString());
         bundle.putBoolean("delta", isDelta);
         Intent intent = new Intent(Intents.ACTION_NEW_DEVICESTATUS);
         intent.putExtras(bundle);
