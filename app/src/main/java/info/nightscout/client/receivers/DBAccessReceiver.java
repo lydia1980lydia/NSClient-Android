@@ -46,12 +46,15 @@ public class DBAccessReceiver extends BroadcastReceiver {
             try { _id = bundles.getString("_id"); } catch (Exception e) {}
             try { data = new JSONObject(bundles.getString("data")); } catch (Exception e) {}
 
-            if (data == null) {
+            if (data == null && !action.equals("dbRemove") || _id == null && action.equals("dbRemove")) {
                 log.debug("DBACCESS no data inside record");
                 return;
             }
 
             // mark by id
+            if (action.equals("dbRemove")) {
+               data = new JSONObject();
+            }
             try {
                 data.put("NSCLIENT_ID", (new Date()).getTime());
             } catch (JSONException e) {
@@ -63,8 +66,13 @@ public class DBAccessReceiver extends BroadcastReceiver {
                 return;
             }
 
-            DbRequest dbr = new DbRequest(action, collection, data);
-            UploadQueue.add(dbr);
+            if (action.equals("dbRemove")) {
+                DbRequest dbr = new DbRequest(action, collection, _id);
+                UploadQueue.add(dbr);
+            } else {
+                DbRequest dbr = new DbRequest(action, collection, data);
+                UploadQueue.add(dbr);
+            }
 
         } finally {
             wakeLock.release();
