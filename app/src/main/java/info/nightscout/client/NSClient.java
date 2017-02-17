@@ -108,7 +108,7 @@ public class NSClient {
                 if (acquireWiFiLock)
                     keepWiFiOn(MainApp.instance().getApplicationContext(), true);
 
-                if (nsAPISecret != "")
+                if (!nsAPISecret.equals(""))
                     nsAPIhashCode = Hashing.sha1().hashString(nsAPISecret, Charsets.UTF_8).toString();
 
                 Intent i = new Intent(MainApp.instance().getApplicationContext(), PreferencesActivity.class);
